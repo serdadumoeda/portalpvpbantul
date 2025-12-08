@@ -1,0 +1,47 @@
+@extends('layouts.admin')
+
+@section('content')
+<div class="card shadow-sm border-0 col-lg-8">
+    <div class="card-header bg-white">
+        <h5 class="mb-0">{{ $testimonial->exists ? 'Edit' : 'Tambah' }} Testimoni</h5>
+    </div>
+    <div class="card-body">
+        <form action="{{ $action }}" method="POST">
+            @csrf
+            @if($method === 'PUT') @method('PUT') @endif
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Nama</label>
+                    <input type="text" name="nama" class="form-control" value="{{ old('nama', $testimonial->nama) }}" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Jabatan / Status</label>
+                    <input type="text" name="jabatan" class="form-control" value="{{ old('jabatan', $testimonial->jabatan) }}">
+                </div>
+            </div>
+            <div class="mb-3 mt-3">
+                <label class="form-label fw-bold">Pesan</label>
+                <textarea name="pesan" rows="4" class="form-control">{{ old('pesan', $testimonial->pesan) }}</textarea>
+            </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Video YouTube URL (opsional)</label>
+                <input type="url" name="video_url" class="form-control" placeholder="https://www.youtube.com/watch?v=..." value="{{ old('video_url', $testimonial->video_url) }}">
+            </div>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Urutan</label>
+                    <input type="number" name="urutan" class="form-control" value="{{ old('urutan', $testimonial->urutan ?? 0) }}">
+                </div>
+                <div class="col-md-6 d-flex align-items-center">
+                    <div class="form-check form-switch mt-3">
+                        <input class="form-check-input" type="checkbox" role="switch" name="is_active" value="1" {{ old('is_active', $testimonial->is_active ?? true) ? 'checked' : '' }}>
+                        <label class="form-check-label">Aktif</label>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-success mt-3">Simpan</button>
+            <a href="{{ route('admin.testimonial.index') }}" class="btn btn-secondary mt-3">Kembali</a>
+        </form>
+    </div>
+</div>
+@endsection
