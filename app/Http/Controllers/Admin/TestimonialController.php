@@ -54,13 +54,20 @@ class TestimonialController extends Controller
 
     private function validateData(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'nama' => 'required|string|max:255',
             'jabatan' => 'nullable|string|max:255',
-            'pesan' => 'nullable|string',
-            'video_url' => 'nullable|url',
-            'urutan' => 'nullable|integer',
+            'pesan' => 'nullable|string|max:2000',
+            'video_url' => ['nullable', 'url', 'regex:/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/i'],
+            'urutan' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
+        ], [
+            'video_url.regex' => 'Video URL harus berasal dari YouTube.',
         ]);
+
+        $data['urutan'] = $data['urutan'] ?? 0;
+        $data['is_active'] = $request->boolean('is_active');
+
+        return $data;
     }
 }

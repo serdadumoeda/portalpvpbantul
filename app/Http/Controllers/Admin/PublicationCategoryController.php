@@ -60,13 +60,14 @@ class PublicationCategoryController extends Controller
             'slug' => 'nullable|string|max:255|unique:publication_categories,slug,' . $id,
             'layout' => 'required|string|max:50',
             'subtitle' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:1000',
             'columns' => 'nullable|integer|min:1|max:6',
-            'urutan' => 'nullable|integer',
+            'urutan' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
         ]);
         $data['slug'] = $data['slug'] ?? Str::slug($data['name']);
         $data['columns'] = $data['columns'] ?? 4;
+        $data['urutan'] = $data['urutan'] ?? 0;
         $data['is_active'] = $request->boolean('is_active');
         return $data;
     }

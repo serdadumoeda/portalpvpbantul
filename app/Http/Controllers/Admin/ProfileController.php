@@ -28,10 +28,25 @@ class ProfileController extends Controller
     {
         $profile = Profile::findOrFail($id);
 
-        $request->validate([
+        $isVisiMisi = $profile->key === 'visi_misi';
+
+        $rules = [
             'judul' => 'required',
-            // Konten boleh kosong jika cuma mau upload gambar (misal struktur)
-            'gambar' => 'image|max:2048'
+            'gambar' => 'nullable|mimes:jpg,jpeg,png|max:2048',
+        ];
+
+        if ($isVisiMisi) {
+            $rules['visi_text'] = 'required|string';
+            $rules['misi_text'] = 'required|string';
+        } else {
+            $rules['konten'] = 'nullable|string';
+        }
+
+        $request->validate($rules, [
+            'gambar.mimes' => 'Format gambar harus JPG atau PNG.',
+            'gambar.max' => 'Ukuran gambar maksimal 2 MB.',
+            'visi_text.required' => 'Bagian visi wajib diisi.',
+            'misi_text.required' => 'Bagian misi wajib diisi.',
         ]);
 
         // Update Gambar jika ada
@@ -48,7 +63,14 @@ class ProfileController extends Controller
 
         // Update Data
         $profile->judul = $request->judul;
-        $profile->konten = $request->konten; // Hati-hati, ini format HTML
+        if ($isVisiMisi) {
+            $profile->konten = json_encode([
+                'visi' => $request->visi_text,
+                'misi' => $request->misi_text,
+            ]);
+        } else {
+            $profile->konten = $request->konten; // format HTML bebas
+        }
         $profile->save();
 
         return redirect()->route('admin.profile.index')->with('success', 'Profil berhasil diperbarui!');

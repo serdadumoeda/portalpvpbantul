@@ -3,127 +3,81 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\Pengumuman;
-use Illuminate\Support\Str;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class PengumumanController extends Controller
 {
-    /**
-     * 1. Menampilkan daftar pengumuman (Read)
-     */
     public function index()
     {
-        // Mengambil data terbaru dengan pagination (10 per halaman)
         $pengumuman = Pengumuman::latest()->paginate(10);
         return view('admin.pengumuman.index', compact('pengumuman'));
     }
 
-    /**
-     * 2. Menampilkan form tambah pengumuman (Create View)
-     */
     public function create()
     {
         return view('admin.pengumuman.create');
     }
 
-    /**
-     * 3. Menyimpan data baru ke database (Store)
-     */
     public function store(Request $request)
     {
-        // Validasi Input
-        $request->validate([
-            'judul' => 'required|max:255',
-            'isi'   => 'required',
-            'file_download' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx|max:5120', // Maks 5MB, format dokumen
-        ]);
+        $data = $this->validatePayload($request);
 
-        $filePath = null;
-
-        // Logika Upload File
         if ($request->hasFile('file_download')) {
-            // Simpan ke folder 'storage/app/public/files'
             $path = $request->file('file_download')->store('files', 'public');
-            // Simpan path yang bisa diakses publik
-            $filePath = '/storage/' . $path;
+            $data['file_download'] = '/storage/' . $path;
         }
 
-        // Simpan ke Database
-        Pengumuman::create([
-            'judul' => $request->judul,
-            'slug'  => Str::slug($request->judul) . '-' . time(), // Slug unik
-            'isi'   => $request->isi,
-            'file_download' => $filePath,
-        ]);
+        $data['slug'] = Str::slug($request->judul) . '-' . time();
+        $this->applyWorkflow($request, $data);
+        $this->prepareSeo($request, $data);
+
+        Pengumuman::create($data);
 
         return redirect()->route('admin.pengumuman.index')
-                         ->with('success', 'Pengumuman berhasil ditambahkan!');
+            ->with('success', 'Pengumuman berhasil ditambahkan!');
     }
 
-    /**
-     * 4. Menampilkan form edit (Edit View)
-     */
     public function edit($id)
     {
         $pengumuman = Pengumuman::findOrFail($id);
         return view('admin.pengumuman.edit', compact('pengumuman'));
     }
 
-    /**
-     * 5. Mengupdate data yang sudah ada (Update)
-     */
     public function update(Request $request, $id)
     {
-        // Validasi
-        $request->validate([
-            'judul' => 'required|max:255',
-            'isi'   => 'required',
-            'file_download' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx|max:5120',
-        ]);
-
         $pengumuman = Pengumuman::findOrFail($id);
+        $data = $this->validatePayload($request, false);
 
-        // Data yang akan diupdate
-        $dataToUpdate = [
-            'judul' => $request->judul,
-            // Update slug jika judul berubah (opsional, tapi baik untuk SEO)
-            'slug'  => Str::slug($request->judul) . '-' . $pengumuman->id, 
-            'isi'   => $request->isi,
-        ];
+        $data['slug'] = Str::slug($request->judul) . '-' . $pengumuman->id;
 
-        // Logika Ganti File
         if ($request->hasFile('file_download')) {
-            // 1. Hapus file lama jika ada (bersihkan storage)
             if ($pengumuman->file_download) {
-                // Konversi path URL (/storage/files/...) kembali ke path disk (files/...)
                 $oldPath = str_replace('/storage/', '', $pengumuman->file_download);
                 if (Storage::disk('public')->exists($oldPath)) {
                     Storage::disk('public')->delete($oldPath);
                 }
             }
 
-            // 2. Upload file baru
             $path = $request->file('file_download')->store('files', 'public');
-            $dataToUpdate['file_download'] = '/storage/' . $path;
+            $data['file_download'] = '/storage/' . $path;
         }
 
-        // Update database
-        $pengumuman->update($dataToUpdate);
+        $this->applyWorkflow($request, $data, $pengumuman);
+        $this->prepareSeo($request, $data);
+
+        $pengumuman->update($data);
 
         return redirect()->route('admin.pengumuman.index')
-                         ->with('success', 'Pengumuman berhasil diperbarui!');
+            ->with('success', 'Pengumuman berhasil diperbarui!');
     }
 
-    /**
-     * 6. Menghapus data dan file (Delete)
-     */
     public function destroy($id)
     {
         $pengumuman = Pengumuman::findOrFail($id);
 
-        // Hapus file fisik dari penyimpanan jika ada
         if ($pengumuman->file_download) {
             $path = str_replace('/storage/', '', $pengumuman->file_download);
             if (Storage::disk('public')->exists($path)) {
@@ -131,10 +85,71 @@ class PengumumanController extends Controller
             }
         }
 
-        // Hapus record dari database
         $pengumuman->delete();
 
         return redirect()->route('admin.pengumuman.index')
-                         ->with('success', 'Pengumuman berhasil dihapus.');
+            ->with('success', 'Pengumuman berhasil dihapus.');
+    }
+
+    public function submit(Request $request, Pengumuman $pengumuman)
+    {
+        $pengumuman->update([
+            'status' => Pengumuman::STATUS_PENDING,
+            'approved_by' => null,
+            'approved_at' => null,
+        ]);
+
+        return back()->with('success', 'Pengumuman diajukan untuk persetujuan.');
+    }
+
+    public function approve(Request $request, Pengumuman $pengumuman)
+    {
+        abort_unless($request->user()->hasPermission('approve-content'), 403);
+
+        $pengumuman->update([
+            'status' => Pengumuman::STATUS_PUBLISHED,
+            'approved_by' => $request->user()->id,
+            'approved_at' => now(),
+        ]);
+
+        return back()->with('success', 'Pengumuman telah disetujui dan dipublikasikan.');
+    }
+
+    private function validatePayload(Request $request, bool $isCreate = true): array
+    {
+        return $request->validate([
+            'judul' => 'required|string|max:160',
+            'isi' => 'required|string',
+            'file_download' => 'nullable|file|mimes:pdf,doc,docx,xls,xlsx|max:5120',
+            'status' => 'nullable|in:' . implode(',', array_keys(Pengumuman::statuses())),
+            'meta_title' => 'nullable|string|max:160',
+            'meta_description' => 'nullable|string|max:320',
+            'focus_keyword' => 'nullable|string|max:100',
+        ]);
+    }
+
+    private function applyWorkflow(Request $request, array &$data, ?Pengumuman $pengumuman = null): void
+    {
+        $currentStatus = $pengumuman ? $pengumuman->status : Pengumuman::STATUS_DRAFT;
+        $requestedStatus = $data['status'] ?? $currentStatus;
+        if ($requestedStatus === Pengumuman::STATUS_PUBLISHED && !$request->user()->hasPermission('approve-content')) {
+            $requestedStatus = Pengumuman::STATUS_PENDING;
+        }
+
+        $data['status'] = $requestedStatus;
+        if ($requestedStatus === Pengumuman::STATUS_PUBLISHED) {
+            $data['approved_by'] = $request->user()->id;
+            $data['approved_at'] = now();
+        } else {
+            $data['approved_by'] = null;
+            $data['approved_at'] = null;
+        }
+    }
+
+    private function prepareSeo(Request $request, array &$data): void
+    {
+        $data['meta_title'] = $request->input('meta_title') ?: Str::limit($request->input('judul'), 60);
+        $data['meta_description'] = $request->input('meta_description') ?: Str::limit(strip_tags($request->input('isi')), 155);
+        $data['focus_keyword'] = $request->input('focus_keyword');
     }
 }

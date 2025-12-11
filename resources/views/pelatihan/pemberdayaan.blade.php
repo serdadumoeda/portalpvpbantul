@@ -87,4 +87,10 @@
         </div>
     </div>
 </section>
+
+@include('components.announcement-widget', [
+    'announcements' => $announcementWidget ?? collect(),
+    'title' => 'Pengumuman Program Pemberdayaan',
+    'subtitle' => 'Update kegiatan sosial dan kolaborasi terbaru.'
+])
 @endsection

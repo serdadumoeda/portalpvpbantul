@@ -44,31 +44,49 @@
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <p class="text-muted mb-4" style="line-height:1.7;">{{ $program->deskripsi }}</p>
-                        <h6 class="fw-bold mb-3">Kode Unit Kompetensi</h6>
-                        <div class="table-responsive">
-                            <table class="table table-striped align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Kode Unit</th>
-                                        <th>Judul Unit Kompetensi</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="small">
-                                    <tr><td>THP PX02.02.01</td><td>Mengidentifikasi Bahan Kemasan Alami</td></tr>
-                                    <tr><td>THP PX02.04.03.01</td><td>Mengidentifikasi Bahan Kemasan Buatan</td></tr>
-                                    <tr><td>THP PX02.04.04.01</td><td>Memilih Cara, Bahan Kemasan, dan Alat Pengemasan Manual</td></tr>
-                                    <tr><td>THP PX02.04.05.01</td><td>Mengemas Secara Manual</td></tr>
-                                    <tr><td>THP PX02.04.06.01</td><td>Mengoperasikan Proses Pengemasan</td></tr>
-                                    <tr><td>THP PX02.04.07.01</td><td>Menerapkan Prinsip Pengemasan Komoditas Pertanian</td></tr>
-                                    <tr><td>THP PX02.04.08.01</td><td>Memilih Cara, Bahan Kemasan, dan Alat Pengemasan Material</td></tr>
-                                    <tr><td>THP PX02.04.09.01</td><td>Mengoperasikan Proses Pada Sistem Pengemasan</td></tr>
-                                    <tr><td>THP PX02.05.00.01</td><td>Membuat Desain Grafis Kemasan</td></tr>
-                                    <tr><td colspan="2" class="fw-bold">Produktivitas</td></tr>
-                                    <tr><td colspan="2" class="fw-bold">Softskills</td></tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="mt-3 text-muted small">Pelatihan dilaksanakan selama 140 jam pelatihan (±20 hari).</div>
+
+                        @php
+                            $kodeUnits = collect(preg_split('/\r\n|\r|\n/', (string) $program->kode_unit_kompetensi))
+                                ->map(fn ($item) => trim($item))
+                                ->filter();
+                        @endphp
+                        @if($kodeUnits->isNotEmpty())
+                            <h6 class="fw-bold mb-3">Kode Unit Kompetensi</h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped align-middle">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th width="30%">Kode Unit</th>
+                                            <th>Judul</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="small">
+                                        @foreach($kodeUnits as $unit)
+                                            @php
+                                                if (str_contains($unit, '|')) {
+                                                    [$code, $title] = array_map('trim', explode('|', $unit, 2));
+                                                } elseif (str_contains($unit, ' - ')) {
+                                                    [$code, $title] = array_map('trim', explode(' - ', $unit, 2));
+                                                } else {
+                                                    $code = null;
+                                                    $title = $unit;
+                                                }
+                                            @endphp
+                                            <tr>
+                                                <td>{{ $code ?? '–' }}</td>
+                                                <td>{{ $title }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @endif
+
+                        @if($program->info_tambahan)
+                            <div class="mt-3 text-muted small">
+                                {!! nl2br(e($program->info_tambahan)) !!}
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
@@ -76,22 +94,39 @@
                 <div class="card border-0 shadow-sm mb-3">
                     <div class="card-body">
                         <h6 class="fw-bold mb-3">Fasilitas & Keunggulan</h6>
-                        <ul class="list-unstyled text-muted small">
-                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Workshop standar industri</li>
-                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Instruktur tersertifikasi</li>
-                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Bahan praktik lengkap</li>
-                            <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> Sertifikat pelatihan & kompetensi</li>
-                        </ul>
+                        @php
+                            $fasilitas = collect(preg_split('/\r\n|\r|\n/', (string) $program->fasilitas_keunggulan))
+                                ->map(fn ($item) => trim($item))
+                                ->filter();
+                        @endphp
+                        @if($fasilitas->isNotEmpty())
+                            <ul class="list-unstyled text-muted small">
+                                @foreach($fasilitas as $item)
+                                    <li class="mb-2"><i class="fas fa-check-circle text-success me-2"></i> {{ $item }}</li>
+                                @endforeach
+                            </ul>
+                        @else
+                            <p class="text-muted small mb-0">Belum ada informasi fasilitas yang ditambahkan.</p>
+                        @endif
                     </div>
                 </div>
                 <div class="card border-0 shadow-sm">
                     <div class="card-body">
                         <h6 class="fw-bold mb-3">Info Tambahan</h6>
-                        <div class="text-muted small">
-                            <div class="mb-2"><i class="fas fa-clock me-2 text-success"></i> Durasi: 140 JP (±20 hari)</div>
-                            <div class="mb-2"><i class="fas fa-map-marker-alt me-2 text-success"></i> Lokasi: Kampus Satpel PVP Bantul</div>
-                            <div class="mb-2"><i class="fas fa-user-friends me-2 text-success"></i> Kapasitas: 20 peserta</div>
-                        </div>
+                        @php
+                            $infoTambahan = collect(preg_split('/\r\n|\r|\n/', (string) $program->info_tambahan))
+                                ->map(fn ($item) => trim($item))
+                                ->filter();
+                        @endphp
+                        @if($infoTambahan->isNotEmpty())
+                            <div class="text-muted small">
+                                @foreach($infoTambahan as $info)
+                                    <div class="mb-2"><i class="fas fa-circle text-success me-2" style="font-size:0.5rem;"></i> {{ $info }}</div>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-muted small mb-0">Tidak ada info tambahan.</p>
+                        @endif
                     </div>
                 </div>
             </div>

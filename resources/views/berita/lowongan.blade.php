@@ -76,11 +76,22 @@
                             <p class="text-muted small mb-1">{{ $vacancy->perusahaan ?? 'Mitra Industri' }}</p>
                             <p class="text-muted small"><i class="fas fa-map-marker-alt me-1"></i>{{ $vacancy->lokasi ?? 'Lokasi fleksibel' }}</p>
                             <p class="text-muted flex-grow-1 small">{{ \Illuminate\Support\Str::limit(strip_tags($vacancy->deskripsi), 120) }}</p>
+                            @php
+                                $qualifications = collect(preg_split('/\r\n|\r|\n/', (string) $vacancy->kualifikasi))
+                                    ->map(fn ($item) => trim($item, "-• \t\r\n"))
+                                    ->filter()
+                                    ->values();
+                            @endphp
+                            @if($qualifications->isNotEmpty())
+                                <ul class="list-unstyled small text-muted mb-0">
+                                    @foreach($qualifications->take(3) as $point)
+                                        <li class="mb-1"><i class="fas fa-check text-success me-1"></i>{{ $point }}</li>
+                                    @endforeach
+                                </ul>
+                            @endif
                             <div class="d-flex justify-content-between align-items-center mt-3">
                                 <small class="text-muted">Deadline: {{ $vacancy->deadline ? $vacancy->deadline->format('d M Y') : '-' }}</small>
-                                @if($vacancy->link_pendaftaran)
-                                    <a href="{{ $vacancy->link_pendaftaran }}" target="_blank" class="btn btn-outline-primary btn-sm rounded-pill">Daftar</a>
-                                @endif
+                                <a href="{{ route('berita.lowongan.detail', $vacancy->id) }}" class="btn btn-outline-primary btn-sm rounded-pill">Detail Lowongan</a>
                             </div>
                         </div>
                     </div>

@@ -11,7 +11,7 @@
     <style>
         html, body { height: 100%; }
         body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background-color: #f5f7fb; color: #1f2d3d; display: flex; flex-direction: column; }
-        main { flex: 1 0 auto; }
+        main { flex: 1 0 auto; background:#fff; }
         .navbar-top { background-color: #0b2b4c; color: white; font-size: 0.85rem; }
         .main-navbar { background: #fff !important; box-shadow: 0 6px 18px -8px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 1030; }
         .nav-link { font-weight: 600; color: #1f2d3d; }
@@ -70,6 +70,7 @@
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('berita.terkini') }}">Berita Terkini</a></li>
                             <li><a class="dropdown-item" href="{{ route('berita.lowongan') }}">Lowongan Kerja</a></li>
+                            <li><a class="dropdown-item" href="{{ route('pengumuman.index') }}">Pengumuman</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">

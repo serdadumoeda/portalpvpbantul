@@ -8,6 +8,14 @@
 
 <div class="card border-0 shadow-sm">
     <div class="card-body">
+        @php
+            $statusLabels = \App\Models\Pengumuman::statuses();
+            $statusColors = [
+                \App\Models\Pengumuman::STATUS_DRAFT => 'secondary',
+                \App\Models\Pengumuman::STATUS_PENDING => 'warning',
+                \App\Models\Pengumuman::STATUS_PUBLISHED => 'success',
+            ];
+        @endphp
         <table class="table table-bordered table-hover">
             <thead class="table-light">
                 <tr>
@@ -15,6 +23,7 @@
                     <th>Judul Pengumuman</th>
                     <th>Tanggal</th>
                     <th>Lampiran</th>
+                    <th>Status</th>
                     <th width="15%">Aksi</th>
                 </tr>
             </thead>
@@ -34,7 +43,24 @@
                         @endif
                     </td>
                     <td>
+                        <span class="badge text-bg-{{ $statusColors[$info->status] ?? 'secondary' }}">{{ $statusLabels[$info->status] ?? ucfirst($info->status) }}</span>
+                    </td>
+                    <td>
                         <a href="{{ route('admin.pengumuman.edit', $info->id) }}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                        @if($info->status === \App\Models\Pengumuman::STATUS_DRAFT)
+                            <form action="{{ route('admin.pengumuman.submit', $info) }}" method="POST" class="d-inline" onsubmit="return confirm('Ajukan pengumuman ini?')">
+                                @csrf
+                                @method('PATCH')
+                                <button class="btn btn-sm btn-outline-primary"><i class="fas fa-paper-plane"></i></button>
+                            </form>
+                        @endif
+                        @if($info->status === \App\Models\Pengumuman::STATUS_PENDING && auth()->user()->hasPermission('approve-content'))
+                            <form action="{{ route('admin.pengumuman.approve', $info) }}" method="POST" class="d-inline" onsubmit="return confirm('Setujui pengumuman ini?')">
+                                @csrf
+                                @method('PATCH')
+                                <button class="btn btn-sm btn-success"><i class="fas fa-check"></i></button>
+                            </form>
+                        @endif
                         <form action="{{ route('admin.pengumuman.destroy', $info->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus pengumuman ini?')">
                             @csrf
                             @method('DELETE')

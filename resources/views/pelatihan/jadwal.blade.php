@@ -120,4 +120,10 @@
         @endforelse
     </div>
 </section>
+
+@include('components.announcement-widget', [
+    'announcements' => $announcementWidget ?? collect(),
+    'title' => 'Pengumuman Jadwal',
+    'subtitle' => 'Perhatikan perubahan jadwal atau persyaratan terbaru.'
+])
 @endsection

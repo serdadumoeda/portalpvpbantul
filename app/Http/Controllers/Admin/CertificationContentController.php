@@ -76,23 +76,27 @@ class CertificationContentController extends Controller
             'section' => 'required|string|max:100',
             'title' => 'nullable|string|max:255',
             'subtitle' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:2000',
             'badge' => 'nullable|string|max:100',
             'button_text' => 'nullable|string|max:150',
-            'button_url' => 'nullable|string|max:255',
+            'button_url' => 'nullable|url|max:255',
             'background' => 'nullable|string|max:255',
-            'urutan' => 'nullable|integer',
+            'urutan' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
-            'list_items' => 'nullable|string',
-            'gambar' => 'nullable|image|max:2048',
+            'list_items' => 'nullable|string|max:2000',
+            'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
 
-        $list = [];
-        if (!empty($data['list_items'])) {
-            $list = array_values(array_filter(array_map('trim', preg_split("/(\r?\n)+/", $data['list_items']))));
+        $listInput = $request->input('list_items');
+        $listItems = [];
+        if (!empty($listInput)) {
+            $listItems = array_values(array_filter(array_map('trim', preg_split("/(\r?\n)+/", $listInput))));
         }
-        $data['list_items'] = $list ?: null;
+
+        unset($data['list_items']);
+        $data['list_items'] = $listItems ?: null;
         $data['is_active'] = $request->boolean('is_active');
+        $data['urutan'] = $data['urutan'] ?? 0;
         unset($data['gambar']);
 
         return $data;

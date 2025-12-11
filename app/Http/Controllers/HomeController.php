@@ -33,6 +33,8 @@ use App\Models\PpidHighlight;
 use App\Models\PublicServiceSetting;
 use App\Models\PublicServiceFlow;
 use App\Models\PpidRequest;
+use App\Models\AlumniTracer;
+use App\Http\Requests\AlumniTracerRequest;
 use Illuminate\Support\Facades\Schema;
 
 class HomeController extends Controller
@@ -45,8 +47,12 @@ class HomeController extends Controller
         // 2. Mengambil Semua Program Pelatihan
         $programs = Program::all();
 
-        // 3. Mengambil 5 Pengumuman Terbaru
-        $pengumuman = Pengumuman::latest()->take(5)->get();
+        // 3. Mengambil 5 Pengumuman Terbaru yang terbit
+        $latestAnnouncements = Pengumuman::where('status', Pengumuman::STATUS_PUBLISHED)
+            ->orderByDesc('approved_at')
+            ->orderByDesc('created_at')
+            ->take(5)
+            ->get();
 
         // 4. Mengambil 8 Foto Galeri Terbaru
         $galeris = Galeri::latest()->take(8)->get();
@@ -60,7 +66,7 @@ class HomeController extends Controller
         $settings = SiteSetting::pluck('value', 'key');
 
         // Mengirim semua data ke view 'home'
-        return view('home', compact('beritaTerbaru', 'programs', 'pengumuman', 'galeris', 'partners', 'instructors', 'benefits', 'flowSteps', 'testimonials', 'settings', 'trainingServices'));
+        return view('home', compact('beritaTerbaru', 'programs', 'latestAnnouncements', 'galeris', 'partners', 'instructors', 'benefits', 'flowSteps', 'testimonials', 'settings', 'trainingServices'));
     }
 
     public function katalogPelatihan()
@@ -120,6 +126,28 @@ class HomeController extends Controller
         $settings = SiteSetting::pluck('value', 'key');
         return view('berita.lowongan', compact('vacancies', 'settings'));
     }
+
+    public function lowonganDetail(JobVacancy $lowongan)
+    {
+        if (! $lowongan->is_active) {
+            abort(404);
+        }
+
+        $relatedVacancies = JobVacancy::where('is_active', true)
+            ->where('id', '!=', $lowongan->id)
+            ->latest()
+            ->take(3)
+            ->get();
+        $settings = SiteSetting::pluck('value', 'key');
+
+        return view('berita.lowongan-detail', [
+            'vacancy' => $lowongan,
+            'relatedVacancies' => $relatedVacancies,
+            'settings' => $settings,
+        ]);
+    }
+
+    //
 
     public function sertifikasi()
     {
@@ -390,12 +418,26 @@ class HomeController extends Controller
                 'konten' => '<p>Upload denah lokasi dengan mengisi konten profil.</p>',
             ]
         );
+        $sejarah = Profile::firstOrCreate(
+            ['key' => 'sejarah'],
+            [
+                'judul' => 'Sejarah Satpel PVP Bantul',
+                'konten' => '<p>Tambahkan narasi sejarah lembaga melalui panel admin.</p>',
+            ]
+        );
+        $strukturProfile = Profile::firstOrCreate(
+            ['key' => 'struktur'],
+            [
+                'judul' => 'Struktur Organisasi',
+                'konten' => '<p>Mewujudkan tata kelola Satpel PVP Bantul yang profesional & kolaboratif.</p>',
+            ]
+        );
         $visiMisi = Profile::where('key', 'visi_misi')->first();
         $structures = OrgStructure::with('children.children')->whereNull('parent_id')->orderBy('urutan')->get();
         $galeris = Galeri::latest()->take(6)->get();
         $settings = SiteSetting::pluck('value', 'key');
 
-        return view('profil.instansi', compact('profilInstansi', 'selayang', 'visiMisi', 'structures', 'galeris', 'denah', 'settings'));
+        return view('profil.instansi', compact('profilInstansi', 'selayang', 'visiMisi', 'structures', 'galeris', 'denah', 'settings', 'sejarah', 'strukturProfile'));
     }
 
     public function profilInstruktur()
@@ -404,4 +446,65 @@ class HomeController extends Controller
         $settings = SiteSetting::pluck('value', 'key');
         return view('profil.instruktur', compact('instructors', 'settings'));
     }
+
+    public function alumniTracerForm()
+    {
+        $programs = Program::orderBy('judul')->get();
+        return view('alumni.tracer', compact('programs'));
+    }
+
+    public function storeAlumniTracer(AlumniTracerRequest $request)
+    {
+        AlumniTracer::create(array_merge(
+            $request->validated(),
+            [
+                'program_name' => $request->input('program_name') ?: optional(Program::find($request->input('program_id')))->judul,
+                'platform_origin' => 'website',
+            ]
+        ));
+
+        return redirect()->route('alumni.tracer')->with('success', 'Terima kasih, data tracer telah tersimpan.');
+    }
+
+    public function pengumumanIndex(Request $request)
+    {
+        $search = trim($request->input('q', ''));
+
+        $announcements = Pengumuman::where('status', Pengumuman::STATUS_PUBLISHED)
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($inner) use ($search) {
+                    $inner->where('judul', 'ILIKE', "%{$search}%")
+                        ->orWhere('isi', 'ILIKE', "%{$search}%");
+                });
+            })
+            ->orderByDesc('approved_at')
+            ->orderByDesc('created_at')
+            ->paginate(9)
+            ->withQueryString();
+
+        $recent = Pengumuman::where('status', Pengumuman::STATUS_PUBLISHED)
+            ->orderByDesc('approved_at')
+            ->orderByDesc('created_at')
+            ->take(5)
+            ->get();
+
+        return view('pengumuman.index', compact('announcements', 'recent', 'search'));
+    }
+
+    public function pengumumanShow(string $slug)
+    {
+        $announcement = Pengumuman::where('slug', $slug)
+            ->where('status', Pengumuman::STATUS_PUBLISHED)
+            ->firstOrFail();
+
+        $recent = Pengumuman::where('status', Pengumuman::STATUS_PUBLISHED)
+            ->whereKeyNot($announcement->id)
+            ->orderByDesc('approved_at')
+            ->orderByDesc('created_at')
+            ->take(5)
+            ->get();
+
+        return view('pengumuman.show', compact('announcement', 'recent'));
+    }
+
 }

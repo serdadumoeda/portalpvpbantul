@@ -36,6 +36,9 @@ class ProgramController extends Controller
         $request->validate([
             'judul'     => 'required|min:5|max:255',
             'deskripsi' => 'required|min:10',
+            'kode_unit_kompetensi' => 'nullable|string|max:2000',
+            'fasilitas_keunggulan' => 'nullable|string|max:2000',
+            'info_tambahan' => 'nullable|string|max:2000',
             'gambar'    => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Wajib ada gambar, maks 2MB
         ]);
 
@@ -51,6 +54,9 @@ class ProgramController extends Controller
         Program::create([
             'judul'     => $request->judul,
             'deskripsi' => $request->deskripsi,
+            'kode_unit_kompetensi' => $request->kode_unit_kompetensi,
+            'fasilitas_keunggulan' => $request->fasilitas_keunggulan,
+            'info_tambahan' => $request->info_tambahan,
             'gambar'    => $imagePath
         ]);
 
@@ -76,6 +82,9 @@ class ProgramController extends Controller
         $request->validate([
             'judul'     => 'required|min:5|max:255',
             'deskripsi' => 'required|min:10',
+            'kode_unit_kompetensi' => 'nullable|string|max:2000',
+            'fasilitas_keunggulan' => 'nullable|string|max:2000',
+            'info_tambahan' => 'nullable|string|max:2000',
             'gambar'    => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Gambar boleh kosong (nullable) saat edit
         ]);
 
@@ -84,6 +93,9 @@ class ProgramController extends Controller
         $dataToUpdate = [
             'judul'     => $request->judul,
             'deskripsi' => $request->deskripsi,
+            'kode_unit_kompetensi' => $request->kode_unit_kompetensi,
+            'fasilitas_keunggulan' => $request->fasilitas_keunggulan,
+            'info_tambahan' => $request->info_tambahan,
         ];
 
         // 2. Cek apakah user mengupload gambar baru

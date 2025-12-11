@@ -14,6 +14,8 @@ class PermissionSeeder extends Seeder
             ['name' => 'manage-users', 'label' => 'Kelola Pengguna', 'module' => 'system'],
             ['name' => 'manage-audit', 'label' => 'Melihat Log Aktivitas', 'module' => 'system'],
             ['name' => 'manage-access', 'label' => 'Kelola Role & Permission', 'module' => 'system'],
+            ['name' => 'approve-content', 'label' => 'Menyetujui Konten', 'module' => 'konten'],
+            ['name' => 'manage-seo', 'label' => 'Kelola SEO', 'module' => 'konten'],
             ['name' => 'manage-berita', 'label' => 'Kelola Berita & Artikel', 'module' => 'konten'],
             ['name' => 'manage-program', 'label' => 'Kelola Program Pelatihan', 'module' => 'konten'],
             ['name' => 'manage-publication', 'label' => 'Kelola Publikasi', 'module' => 'konten'],

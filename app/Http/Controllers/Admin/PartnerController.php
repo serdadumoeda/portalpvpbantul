@@ -66,12 +66,17 @@ class PartnerController extends Controller
 
     private function validateData(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'nama' => 'required|string|max:255',
-            'tautan' => 'nullable|url',
-            'urutan' => 'nullable|integer',
+            'tautan' => 'nullable|url|max:255',
+            'urutan' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
-            'logo' => 'nullable|image|max:2048',
+            'logo' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
+
+        $data['urutan'] = $data['urutan'] ?? 0;
+        $data['is_active'] = $request->boolean('is_active');
+
+        return $data;
     }
 }

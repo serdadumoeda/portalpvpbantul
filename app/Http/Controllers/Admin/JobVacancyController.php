@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\JobVacancy;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class JobVacancyController extends Controller
 {
@@ -64,14 +65,30 @@ class JobVacancyController extends Controller
             'judul' => 'required|string|max:255',
             'perusahaan' => 'nullable|string|max:255',
             'lokasi' => 'nullable|string|max:255',
-            'tipe_pekerjaan' => 'nullable|string|max:255',
+            'tipe_pekerjaan' => ['nullable', 'string', Rule::in(['Full Time', 'Part Time', 'Magang', 'Freelance', 'Kontrak'])],
             'deskripsi' => 'nullable|string',
             'kualifikasi' => 'nullable|string',
             'deadline' => 'nullable|date',
             'link_pendaftaran' => 'nullable|url',
             'is_active' => 'nullable|boolean',
-            'gambar' => 'nullable|image|max:2048',
+            'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
+
+        $defaults = [
+            'perusahaan' => 'Mitra Industri',
+            'lokasi' => 'Lokasi fleksibel',
+            'tipe_pekerjaan' => 'Full Time',
+            'deskripsi' => 'Informasi lowongan akan diperbarui segera.',
+            'kualifikasi' => "• Komunikatif dan proaktif\n• Bersedia ditempatkan sesuai kebutuhan",
+            'link_pendaftaran' => 'https://siapkerja.kemnaker.go.id/app/lowongan',
+        ];
+
+        foreach ($defaults as $field => $value) {
+            if (blank($data[$field] ?? null)) {
+                $data[$field] = $value;
+            }
+        }
+
         $data['is_active'] = $request->boolean('is_active');
         return $data;
     }

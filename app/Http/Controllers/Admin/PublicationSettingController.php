@@ -18,18 +18,24 @@ class PublicationSettingController extends Controller
     {
         $data = $request->validate([
             'hero_title' => 'nullable|string|max:255',
-            'hero_description' => 'nullable|string',
+            'hero_description' => 'nullable|string|max:1000',
             'hero_button_text' => 'nullable|string|max:100',
-            'hero_button_link' => 'nullable|string|max:255',
-            'hero_image' => 'nullable|image|max:2048',
+            'hero_button_link' => 'nullable|url|max:255',
+            'hero_image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
             'intro_title' => 'nullable|string|max:255',
-            'intro_description' => 'nullable|string',
+            'intro_description' => 'nullable|string|max:1000',
             'alumni_title' => 'nullable|string|max:255',
-            'alumni_description' => 'nullable|string',
-            'alumni_video_url' => 'nullable|string|max:255',
+            'alumni_description' => 'nullable|string|max:1000',
+            'alumni_video_url' => ['nullable','url','max:255','regex:/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/i'],
             'downloads_title' => 'nullable|string|max:255',
-            'downloads_description' => 'nullable|string',
+            'downloads_description' => 'nullable|string|max:1000',
+        ], [
+            'alumni_video_url.regex' => 'URL video harus berasal dari YouTube.',
         ]);
+
+        if (! empty($data['alumni_video_url'])) {
+            $data['alumni_video_url'] = $this->normalizeYoutubeUrl($data['alumni_video_url']);
+        }
 
         $setting = PublicationSetting::first() ?? new PublicationSetting();
         if ($request->hasFile('hero_image')) {
@@ -38,5 +44,26 @@ class PublicationSettingController extends Controller
         $setting->fill($data)->save();
 
         return redirect()->route('admin.publication.settings')->with('success', 'Pengaturan publikasi disimpan.');
+    }
+
+    private function normalizeYoutubeUrl(string $url): string
+    {
+        $parsed = parse_url($url);
+        if (! isset($parsed['host'])) {
+            return $url;
+        }
+
+        $host = $parsed['host'];
+        if (str_contains($host, 'youtu.be')) {
+            $videoId = ltrim($parsed['path'] ?? '', '/');
+            return $videoId ? 'https://www.youtube.com/embed/' . $videoId : $url;
+        }
+
+        parse_str($parsed['query'] ?? '', $query);
+        if (isset($query['v'])) {
+            return 'https://www.youtube.com/embed/' . $query['v'];
+        }
+
+        return $url;
     }
 }

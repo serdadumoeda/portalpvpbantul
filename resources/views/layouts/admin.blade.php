@@ -314,6 +314,9 @@
                             <i class="fas fa-users-cog"></i> Manajemen Pengguna
                         </a>
                     @endif
+                    <a href="{{ route('admin.alumni-tracer.index') }}" class="{{ request()->routeIs('admin.alumni-tracer.*') ? 'active' : '' }}">
+                        <i class="fas fa-user-graduate"></i> Tracer Alumni
+                    </a>
                     @if(auth()->user()?->hasPermission('manage-access'))
                         <a href="{{ route('admin.roles.index') }}" class="{{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
                             <i class="fas fa-user-shield"></i> Role
@@ -325,6 +328,11 @@
                     @if(auth()->user()?->hasPermission('manage-audit'))
                         <a href="{{ route('admin.activity-logs.index') }}" class="{{ request()->routeIs('admin.activity-logs.*') ? 'active' : '' }}">
                             <i class="fas fa-clipboard-list"></i> Log Aktivitas
+                        </a>
+                    @endif
+                    @if(Route::has('admin.branding-kpi.index'))
+                        <a href="{{ route('admin.branding-kpi.index') }}" class="{{ request()->routeIs('admin.branding-kpi.*') ? 'active' : '' }}">
+                            <i class="fas fa-bullseye"></i> KPI Branding
                         </a>
                     @endif
                 </div>
@@ -360,6 +368,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
         const bodyEl = document.body;
         const sidebarToggle = document.getElementById('sidebarToggle');

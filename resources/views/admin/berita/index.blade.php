@@ -8,6 +8,14 @@
 
 <div class="card shadow-sm border-0">
     <div class="card-body">
+        @php
+            $statusLabels = \App\Models\Berita::statuses();
+            $statusColors = [
+                \App\Models\Berita::STATUS_DRAFT => 'secondary',
+                \App\Models\Berita::STATUS_PENDING => 'warning',
+                \App\Models\Berita::STATUS_PUBLISHED => 'success',
+            ];
+        @endphp
         <table class="table table-hover table-bordered">
             <thead class="table-light">
                 <tr>
@@ -16,6 +24,7 @@
                     <th>Judul Berita</th>
                     <th>Kategori</th>
                     <th>Tanggal</th>
+                    <th>Status</th>
                     <th>Aksi</th>
                 </tr>
             </thead>
@@ -30,7 +39,27 @@
                     <td><span class="badge bg-primary bg-opacity-10 text-primary">{{ \App\Models\Berita::categories()[$item->kategori] ?? $item->kategori }}</span></td>
                     <td>{{ optional($item->published_at)->format('d M Y') }}</td>
                     <td>
+                        <span class="badge text-bg-{{ $statusColors[$item->status] ?? 'secondary' }}">{{ $statusLabels[$item->status] ?? ucfirst($item->status) }}</span>
+                        @if($item->status === \App\Models\Berita::STATUS_PENDING && $item->approver)
+                            <small class="text-muted d-block">Menunggu persetujuan</small>
+                        @endif
+                    </td>
+                    <td>
                         <a href="{{ route('admin.berita.edit', $item->id) }}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                        @if($item->status === \App\Models\Berita::STATUS_DRAFT)
+                            <form action="{{ route('admin.berita.submit', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Ajukan berita ini?')">
+                                @csrf
+                                @method('PATCH')
+                                <button class="btn btn-sm btn-outline-primary"><i class="fas fa-paper-plane"></i></button>
+                            </form>
+                        @endif
+                        @if($item->status === \App\Models\Berita::STATUS_PENDING && auth()->user()->hasPermission('approve-content'))
+                            <form action="{{ route('admin.berita.approve', $item) }}" method="POST" class="d-inline" onsubmit="return confirm('Setujui berita ini?')">
+                                @csrf
+                                @method('PATCH')
+                                <button class="btn btn-sm btn-success"><i class="fas fa-check"></i></button>
+                            </form>
+                        @endif
                         <form action="{{ route('admin.berita.destroy', $item->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Yakin hapus data ini?')">
                             @csrf
                             @method('DELETE')

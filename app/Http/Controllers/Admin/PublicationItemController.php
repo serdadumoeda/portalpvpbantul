@@ -67,16 +67,17 @@ class PublicationItemController extends Controller
             'publication_category_id' => 'required|exists:publication_categories,id',
             'title' => 'required|string|max:255',
             'subtitle' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:2000',
             'badge' => 'nullable|string|max:50',
             'button_text' => 'nullable|string|max:100',
-            'button_link' => 'nullable|string|max:255',
-            'extra' => 'nullable|string',
-            'urutan' => 'nullable|integer',
+            'button_link' => 'nullable|url|max:255',
+            'extra' => 'nullable|string|max:2000',
+            'urutan' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
-            'image' => 'nullable|image|max:2048',
+            'image' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
         $data['extra'] = $data['extra'] ? array_values(array_filter(array_map('trim', preg_split("/(\r?\n)+/", $data['extra'])))) : null;
+        $data['urutan'] = $data['urutan'] ?? 0;
         $data['is_active'] = $request->boolean('is_active');
         return $data;
     }

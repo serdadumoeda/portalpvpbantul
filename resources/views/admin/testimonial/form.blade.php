@@ -6,31 +6,87 @@
         <h5 class="mb-0">{{ $testimonial->exists ? 'Edit' : 'Tambah' }} Testimoni</h5>
     </div>
     <div class="card-body">
-        <form action="{{ $action }}" method="POST">
+        @if ($errors->any())
+            <div class="alert alert-danger">
+                <strong>Form belum valid.</strong>
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </div>
+        @endif
+
+        <form action="{{ $action }}" method="POST" novalidate>
             @csrf
             @if($method === 'PUT') @method('PUT') @endif
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Nama</label>
-                    <input type="text" name="nama" class="form-control" value="{{ old('nama', $testimonial->nama) }}" required>
+                    <input 
+                        type="text" 
+                        name="nama" 
+                        class="form-control @error('nama') is-invalid @enderror" 
+                        value="{{ old('nama', $testimonial->nama) }}" 
+                        maxlength="255"
+                        required
+                    >
+                    @error('nama')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Jabatan / Status</label>
-                    <input type="text" name="jabatan" class="form-control" value="{{ old('jabatan', $testimonial->jabatan) }}">
+                    <input 
+                        type="text" 
+                        name="jabatan" 
+                        class="form-control @error('jabatan') is-invalid @enderror" 
+                        value="{{ old('jabatan', $testimonial->jabatan) }}"
+                        maxlength="255"
+                    >
+                    @error('jabatan')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
             </div>
             <div class="mb-3 mt-3">
                 <label class="form-label fw-bold">Pesan</label>
-                <textarea name="pesan" rows="4" class="form-control">{{ old('pesan', $testimonial->pesan) }}</textarea>
+                <textarea 
+                    name="pesan" 
+                    rows="4" 
+                    class="form-control @error('pesan') is-invalid @enderror" 
+                    maxlength="2000"
+                >{{ old('pesan', $testimonial->pesan) }}</textarea>
+                @error('pesan')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
             <div class="mb-3">
                 <label class="form-label fw-bold">Video YouTube URL (opsional)</label>
-                <input type="url" name="video_url" class="form-control" placeholder="https://www.youtube.com/watch?v=..." value="{{ old('video_url', $testimonial->video_url) }}">
+                <input 
+                    type="url" 
+                    name="video_url" 
+                    class="form-control @error('video_url') is-invalid @enderror" 
+                    placeholder="https://www.youtube.com/watch?v=..."
+                    value="{{ old('video_url', $testimonial->video_url) }}"
+                >
+                @error('video_url')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
             </div>
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label fw-bold">Urutan</label>
-                    <input type="number" name="urutan" class="form-control" value="{{ old('urutan', $testimonial->urutan ?? 0) }}">
+                    <input 
+                        type="number" 
+                        name="urutan" 
+                        class="form-control @error('urutan') is-invalid @enderror" 
+                        value="{{ old('urutan', $testimonial->urutan ?? 0) }}"
+                        min="0"
+                    >
+                    @error('urutan')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
                 </div>
                 <div class="col-md-6 d-flex align-items-center">
                     <div class="form-check form-switch mt-3">

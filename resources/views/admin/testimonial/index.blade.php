@@ -5,7 +5,6 @@
     <h3>Testimoni & Video</h3>
     <a href="{{ route('admin.testimonial.create') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> Tambah</a>
 </div>
-@if(session('success')) <div class="alert alert-success">{{ session('success') }}</div> @endif
 <div class="card shadow-sm border-0">
     <div class="card-body table-responsive">
         <table class="table align-middle">

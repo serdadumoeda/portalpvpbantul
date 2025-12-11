@@ -68,15 +68,18 @@ class CertificationSchemeController extends Controller
             'category' => 'required|string|max:100',
             'title' => 'required|string|max:255',
             'subtitle' => 'nullable|string|max:255',
-            'description' => 'nullable|string',
+            'description' => 'nullable|string|max:2000',
             'cta_text' => 'nullable|string|max:150',
-            'cta_url' => 'nullable|string|max:255',
-            'urutan' => 'nullable|integer',
+            'cta_url' => 'nullable|url|max:255',
+            'urutan' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
-            'gambar' => 'nullable|image|max:2048',
+            'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
         ]);
+
         $data['is_active'] = $request->boolean('is_active');
+        $data['urutan'] = $data['urutan'] ?? 0;
         unset($data['gambar']);
+
         return $data;
     }
 

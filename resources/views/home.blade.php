@@ -21,17 +21,24 @@
     </div>
 </section>
 
-<section class="bg-white border-top border-bottom">
-    <div class="container py-3">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <div class="fw-bold text-primary d-flex align-items-center"><i class="fas fa-bullhorn me-2"></i> Satpel PVP Bantul</div>
-            <div class="flex-grow-1">
-                <marquee class="text-muted small">Kami hadir untuk memberikan pelatihan vokasi berbasis kompetensi dengan fasilitas modern dan kemitraan industri.</marquee>
-            </div>
-            <a href="https://kemnaker.go.id" target="_blank" class="btn btn-sm btn-outline-primary">Kemnaker RI</a>
+@if($latestAnnouncements->isNotEmpty())
+<section class="bg-white border-top border-bottom py-3">
+    <div class="container d-flex flex-wrap align-items-center gap-3">
+        <div class="fw-bold text-primary d-flex align-items-center">
+            <i class="fas fa-bullhorn me-2"></i> Pengumuman
         </div>
+        <div class="flex-grow-1">
+            <marquee class="text-muted small">
+                @foreach($latestAnnouncements as $item)
+                    <span class="me-4">{{ $item->created_at?->translatedFormat('d M Y') }} — {{ Str::limit($item->judul, 80) }}</span>
+                @endforeach
+            </marquee>
+        </div>
+        <a href="{{ route('pengumuman.index') }}" class="btn btn-sm btn-outline-primary rounded-pill">Lihat Semua</a>
     </div>
 </section>
+
+@endif
 
 <section class="py-5 bg-white">
     <div class="container">
@@ -104,7 +111,7 @@
                     <div class="card-body">
                         <h6 class="fw-bold">{{ $program->judul }}</h6>
                         <p class="text-muted small">{{ Str::limit($program->deskripsi ?? '', 80) }}</p>
-                        <a href="{{ route('program.show', $program->id) }}" class="btn btn-sm btn-primary rounded-pill">Daftar</a>
+                        <a href="{{ route('program.show', $program->id) }}" class="btn btn-sm btn-primary rounded-pill">Lihat Detail</a>
                     </div>
                 </div>
             </div>

@@ -10,5 +10,8 @@ class Galeri extends Model
 {
     use HasUuid;
 
-    //
+    protected $fillable = [
+        'judul',
+        'gambar',
+    ];
 }

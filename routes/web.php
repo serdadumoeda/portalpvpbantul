@@ -45,6 +45,8 @@ use App\Http\Controllers\Admin\PermissionController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\BrandingKpiController;
+use App\Http\Controllers\Admin\AlumniTracerController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -52,11 +54,16 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/profil', function () { return view('profil'); })->name('profil');
 Route::get('/program', [HomeController::class, 'katalogPelatihan'])->name('program');
 Route::get('/kontak', function () { return view('kontak'); })->name('kontak');
+Route::get('/alumni/tracer', [HomeController::class, 'alumniTracerForm'])->name('alumni.tracer');
+Route::post('/alumni/tracer', [HomeController::class, 'storeAlumniTracer'])->name('alumni.tracer.store');
 
+Route::get('/pengumuman', [HomeController::class, 'pengumumanIndex'])->name('pengumuman.index');
+Route::get('/pengumuman/{slug}', [HomeController::class, 'pengumumanShow'])->name('pengumuman.show');
 
 Route::redirect('/berita', '/berita/terkini');
 Route::get('/berita/terkini', [HomeController::class, 'beritaTerkini'])->name('berita.terkini');
 Route::get('/berita/lowongan', [HomeController::class, 'lowonganKerja'])->name('berita.lowongan');
+Route::get('/berita/lowongan/{lowongan}', [HomeController::class, 'lowonganDetail'])->name('berita.lowongan.detail');
 Route::get('/berita/{slug}', [HomeController::class, 'showBerita'])->name('berita.show');
 Route::prefix('resource')->name('resource.')->group(function () {
     Route::get('/infografis-alumni', [HomeController::class, 'resourceInfografis'])->name('infografis');
@@ -95,6 +102,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::resource('instructor', InstructorController::class)->except(['show']);
     Route::resource('benefit', BenefitController::class)->except(['show']);
     Route::resource('flow', FlowStepController::class)->except(['show']);
+    Route::resource('alumni-tracer', AlumniTracerController::class)->only(['index','show','destroy']);
+    Route::patch('alumni-tracer/{alumni_tracer}/verify', [AlumniTracerController::class, 'verify'])->name('alumni-tracer.verify');
     Route::resource('testimonial', TestimonialController::class)->except(['show']);
     Route::resource('training-service', TrainingServiceController::class)->except(['show']);
     Route::resource('training-schedule', TrainingScheduleController::class)->except(['show']);
@@ -132,6 +141,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::resource('roles', RoleController::class)->except(['show'])->middleware('permission:manage-access');
     Route::resource('permissions', PermissionController::class)->except(['show'])->middleware('permission:manage-access');
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index')->middleware('permission:manage-audit');
+    Route::get('branding-kpi/{branding_kpi}/download', [BrandingKpiController::class, 'download'])->name('branding-kpi.download');
+    Route::resource('branding-kpi', BrandingKpiController::class);
 });
 
 Route::get('/profil/sejarah', [HomeController::class, 'sejarah'])->name('profil.sejarah');

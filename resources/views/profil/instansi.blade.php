@@ -30,6 +30,20 @@
         height:100%;
         object-fit:cover;
     }
+    .map-embed{
+        position:relative;
+        padding-top:56.25%;
+        border-radius:24px;
+        overflow:hidden;
+        box-shadow:0 25px 60px -40px rgba(0,0,0,.45);
+    }
+    .map-embed iframe{
+        position:absolute;
+        inset:0;
+        width:100%;
+        height:100%;
+        border:0;
+    }
 </style>
 @endpush
 <section class="profile-hero">
@@ -70,6 +84,27 @@
     </div>
 </section>
 
+@if($sejarah)
+<section class="py-5" style="background:#f8f9fb;">
+    <div class="container">
+        <div class="row g-4 align-items-center">
+            <div class="col-lg-6">
+                <span class="badge bg-primary-subtle text-primary fw-semibold mb-2">Sejarah PVP Bantul</span>
+                <h3 class="fw-bold mb-3">{{ $sejarah->judul ?? 'Sejarah Satpel PVP Bantul' }}</h3>
+                <div class="text-muted" style="line-height:1.8;">
+                    {!! $sejarah->konten !!}
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="rounded-4 overflow-hidden shadow-sm">
+                    <img src="{{ $sejarah->gambar ? asset($sejarah->gambar) : 'https://placehold.co/720x480?text=Sejarah+PVP+Bantul' }}" class="img-fluid" alt="Sejarah Satpel PVP Bantul">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+@endif
+
 @if($selayang)
 <section class="py-5" style="background:#f2fbf8;">
     <div class="container">
@@ -89,6 +124,18 @@
 @endif
 
 @if($visiMisi)
+@php
+    $visiData = null;
+    if ($visiMisi?->konten) {
+        $decodedVisi = json_decode($visiMisi->konten, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decodedVisi)) {
+            $visiData = [
+                'visi' => $decodedVisi['visi'] ?? '',
+                'misi' => $decodedVisi['misi'] ?? '',
+            ];
+        }
+    }
+@endphp
 <section class="py-5 bg-white">
     <div class="container">
         <div class="text-center mb-4">
@@ -100,7 +147,7 @@
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
                         <h5 class="fw-semibold mb-3">Visi</h5>
-                        <div class="text-muted">{!! \Illuminate\Support\Str::before($visiMisi->konten, '</li>') !!}</div>
+                        <div class="text-muted">{!! $visiData['visi'] ?? $visiMisi->konten !!}</div>
                     </div>
                 </div>
             </div>
@@ -108,7 +155,7 @@
                 <div class="card border-0 shadow-sm h-100">
                     <div class="card-body">
                         <h5 class="fw-semibold mb-3">Misi</h5>
-                        <div class="text-muted">{!! $visiMisi->konten !!}</div>
+                        <div class="text-muted">{!! $visiData['misi'] ?? $visiMisi->konten !!}</div>
                     </div>
                 </div>
             </div>
@@ -120,9 +167,14 @@
 <section class="py-5" style="background:#f0f8ff;">
     <div class="container">
         <div class="text-center mb-4">
-            <h3 class="fw-bold text-primary">Struktur Organisasi</h3>
-            <p class="text-muted mb-0">Mewujudkan tata kelola Satpel PVP Bantul yang profesional & kolaboratif.</p>
+            <h3 class="fw-bold text-primary">{{ $strukturProfile->judul ?? 'Struktur Organisasi' }}</h3>
+            <p class="text-muted mb-0">{!! $strukturProfile->konten ?? 'Mewujudkan tata kelola Satpel PVP Bantul yang profesional & kolaboratif.' !!}</p>
         </div>
+        @if($strukturProfile?->gambar)
+            <div class="text-center mb-4">
+                <img src="{{ asset($strukturProfile->gambar) }}" class="img-fluid rounded shadow-sm" alt="{{ $strukturProfile->judul }}" style="max-height:400px;object-fit:cover;">
+            </div>
+        @endif
         @php
             $renderTree = function($nodes) use (&$renderTree) {
                 if ($nodes->isEmpty()) {
@@ -165,9 +217,24 @@
                 <p class="text-muted">Temukan lokasi workshop, asrama, area publik, dan fasilitas pendukung lainnya melalui denah terbaru kami.</p>
             </div>
             <div class="col-lg-7">
-                <div class="rounded-4 overflow-hidden shadow-sm">
-                    <img src="{{ $denah->gambar ? asset($denah->gambar) : 'https://placehold.co/900x580?text=Denah+Lokasi' }}" class="img-fluid" alt="Denah BPVP">
-                </div>
+                @php
+                    $denahEmbed = trim($denah->konten ?? '');
+                @endphp
+                @if($denahEmbed)
+                    <div class="map-embed">
+                        @if(\Illuminate\Support\Str::contains($denahEmbed, '<iframe'))
+                            {!! $denahEmbed !!}
+                        @else
+                            <iframe src="{{ $denahEmbed }}" loading="lazy" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+                        @endif
+                    </div>
+                @elseif($denah->gambar)
+                    <div class="rounded-4 overflow-hidden shadow-sm">
+                        <img src="{{ asset($denah->gambar) }}" class="img-fluid" alt="Denah BPVP">
+                    </div>
+                @else
+                    <div class="alert alert-info">Belum ada peta yang ditambahkan.</div>
+                @endif
             </div>
         </div>
     </div>

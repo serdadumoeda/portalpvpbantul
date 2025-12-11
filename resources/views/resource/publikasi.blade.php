@@ -8,6 +8,21 @@
         return \Illuminate\Support\Str::startsWith($path, ['http', 'https']) ? $path : asset($path);
     };
     $heroBg = $resolveImage($setting->hero_image, 'https://images.unsplash.com/photo-1520607162513-77705c0f0d4a?auto=format&fit=crop&w=1400&q=70');
+    $embedYoutube = function ($url) {
+        if (! $url) {
+            return null;
+        }
+        $parsed = parse_url($url);
+        if (! $parsed || ! isset($parsed['host'])) {
+            return $url;
+        }
+        if (str_contains($parsed['host'], 'youtu.be')) {
+            $video = ltrim($parsed['path'] ?? '', '/');
+            return $video ? 'https://www.youtube.com/embed/' . $video : $url;
+        }
+        parse_str($parsed['query'] ?? '', $query);
+        return isset($query['v']) ? 'https://www.youtube.com/embed/' . $query['v'] : $url;
+    };
 @endphp
 @push('styles')
 <style>
@@ -85,7 +100,9 @@
                     <div>
                         <span class="text-uppercase text-muted small fw-semibold">{{ $category->subtitle }}</span>
                         <h3 class="fw-bold mb-1">{{ $category->name }}</h3>
-                        <p class="text-muted mb-0">{{ $category->description }}</p>
+                        @if($category->description)
+                            <p class="text-muted mb-0">{{ $category->description }}</p>
+                        @endif
                     </div>
                 </div>
                 @php $layout = $category->layout; @endphp
@@ -106,6 +123,9 @@
                                         <span class="pub-badge text-primary fw-semibold mb-2">{{ $item->badge }}</span>
                                     @endif
                                     <h5 class="fw-bold">{{ $item->title }}</h5>
+                                    @if($item->subtitle)
+                                        <p class="text-muted small mb-1">{{ $item->subtitle }}</p>
+                                    @endif
                                     <p class="text-muted small flex-grow-1">{{ $item->description }}</p>
                                     @if($item->button_text && $item->button_link)
                                         <a href="{{ $item->button_link }}" class="btn btn-sm btn-outline-primary rounded-pill mt-2" target="_blank">{{ $item->button_text }}</a>
@@ -123,6 +143,9 @@
                                 <div class="pub-infographic h-100">
                                     <div class="text-uppercase small text-warning mb-2">{{ $item->badge }}</div>
                                     <h4 class="fw-bold">{{ $item->title }}</h4>
+                                    @if($item->subtitle)
+                                        <p class="mb-1 text-white-50">{{ $item->subtitle }}</p>
+                                    @endif
                                     <p class="mb-3">{{ $item->description }}</p>
                                     @if($item->extra)
                                         <div class="row g-2">
@@ -140,11 +163,18 @@
                         @endforelse
                     </div>
                 @elseif($layout === 'downloads')
+                    <div class="mb-3">
+                        <h4 class="fw-bold mb-1">{{ $setting->downloads_title ?? 'Materi Unduhan' }}</h4>
+                        <p class="text-muted mb-0">{{ $setting->downloads_description ?? '' }}</p>
+                    </div>
                     <ul class="list-unstyled pub-downloads">
                         @forelse($category->items as $item)
                             <li class="d-flex justify-content-between align-items-center">
                                 <div>
                                     <strong>{{ $item->title }}</strong>
+                                    @if($item->subtitle)
+                                        <div class="text-muted small">{{ $item->subtitle }}</div>
+                                    @endif
                                     <p class="text-muted small mb-0">{{ $item->description }}</p>
                                 </div>
                                 @if($item->button_link)
@@ -157,9 +187,13 @@
                     </ul>
                 @elseif($layout === 'alumni')
                     <div class="row g-4 align-items-center">
+                        <div class="col-12">
+                            <h4 class="fw-bold mb-1">{{ $setting->alumni_title ?? 'Cerita Alumni' }}</h4>
+                            <p class="text-muted mb-3">{{ $setting->alumni_description ?? '' }}</p>
+                        </div>
                         <div class="col-lg-7">
                             <div class="video-wrapper">
-                                <iframe src="{{ $setting->alumni_video_url ?? 'https://www.youtube.com/embed/dQw4w9WgXcQ' }}" width="100%" height="360" frameborder="0" allowfullscreen></iframe>
+                                <iframe src="{{ $embedYoutube($setting->alumni_video_url) ?? 'https://www.youtube.com/embed/dQw4w9WgXcQ' }}" width="100%" height="360" frameborder="0" allowfullscreen></iframe>
                             </div>
                         </div>
                         <div class="col-lg-5">
@@ -167,6 +201,9 @@
                                 @forelse($category->items as $item)
                                     <div class="list-group-item">
                                         <h6 class="fw-bold mb-1">{{ $item->title }}</h6>
+                                        @if($item->subtitle)
+                                            <p class="text-muted small mb-1">{{ $item->subtitle }}</p>
+                                        @endif
                                         <p class="mb-1 text-muted small">{{ $item->description }}</p>
                                         @if($item->button_link)
                                             <a href="{{ $item->button_link }}" target="_blank" class="text-primary small">{{ $item->button_text ?? 'Lihat Detail' }}</a>

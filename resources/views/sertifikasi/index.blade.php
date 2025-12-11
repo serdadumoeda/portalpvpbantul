@@ -53,7 +53,10 @@
                     @if(!empty($hero?->badge))
                         <span class="badge rounded-pill bg-white text-primary px-3 py-2 mb-3" style="font-weight:600;">{{ $hero->badge }}</span>
                     @endif
-                    <h1 class="display-5 fw-bold text-white mb-3">{{ $hero->title ?? 'Sertifikasi' }}</h1>
+                    <h1 class="display-5 fw-bold text-white mb-1">{{ $hero->title ?? 'Sertifikasi' }}</h1>
+                    @if(!empty($hero?->subtitle))
+                        <p class="fw-semibold text-white-75 mb-3">{{ $hero->subtitle }}</p>
+                    @endif
                     <p class="lead mb-4">{{ $hero->description ?? 'Pastikan kompetensi Anda diakui melalui skema sertifikasi LSP Satpel PVP Bantul.' }}</p>
                     @if($hero?->button_text)
                         <a href="{{ $hero->button_url ?? '#' }}" class="btn btn-outline-light rounded-pill px-4">{{ $hero->button_text }}</a>
@@ -79,7 +82,10 @@
             </div>
             <div class="col-lg-6">
                 <span class="badge bg-primary bg-opacity-10 text-primary fw-semibold mb-3">{{ $intro->badge ?? 'LSP Satpel PVP Bantul' }}</span>
-                <h2 class="fw-bold mb-3">{{ $intro->title ?? 'LSP Satpel PVP Bantul' }}</h2>
+                <h2 class="fw-bold mb-1">{{ $intro->title ?? 'LSP Satpel PVP Bantul' }}</h2>
+                @if($intro?->subtitle)
+                    <p class="text-muted">{{ $intro->subtitle }}</p>
+                @endif
                 <p class="text-muted" style="line-height:1.7;">{{ $intro->description ?? 'Lembaga Sertifikasi Profesi Satpel PVP Bantul menghadirkan layanan uji kompetensi yang kredibel dengan fasilitas lengkap.' }}</p>
                 @if(!empty($intro?->list_items))
                     <ul class="list-unstyled mt-3">
@@ -99,14 +105,20 @@
             <div class="col-md-6">
                 <div class="p-4 bg-white rounded-4 shadow-sm h-100">
                     <span class="badge bg-success bg-opacity-10 text-success fw-semibold mb-3">{{ $visi->badge ?? 'Visi' }}</span>
-                    <h3 class="fw-bold mb-3">{{ $visi->title ?? 'Visi LSP Satpel PVP Bantul' }}</h3>
+                    <h3 class="fw-bold mb-1">{{ $visi->title ?? 'Visi LSP Satpel PVP Bantul' }}</h3>
+                    @if($visi?->subtitle)
+                        <p class="text-muted">{{ $visi->subtitle }}</p>
+                    @endif
                     <p class="text-muted">{{ $visi->description ?? 'Menjadi lembaga sertifikasi kompetensi terpercaya dalam menyiapkan SDM unggul dan berdaya saing.' }}</p>
                 </div>
             </div>
             <div class="col-md-6">
                 <div class="p-4 bg-white rounded-4 shadow-sm h-100">
                     <span class="badge bg-info bg-opacity-10 text-info fw-semibold mb-3">{{ $misi->badge ?? 'Misi' }}</span>
-                    <h3 class="fw-bold mb-3">{{ $misi->title ?? 'Misi Kami' }}</h3>
+                    <h3 class="fw-bold mb-1">{{ $misi->title ?? 'Misi Kami' }}</h3>
+                    @if($misi?->subtitle)
+                        <p class="text-muted">{{ $misi->subtitle }}</p>
+                    @endif
                     @if(!empty($misi?->list_items))
                         <ul class="list-unstyled mb-0">
                             @foreach($misi->list_items as $point)
@@ -126,7 +138,10 @@
     <div class="container">
         <div class="row g-4 align-items-center">
             <div class="col-lg-6">
-                <h2 class="fw-bold mb-3">{{ $tujuan->title ?? 'Tujuan LSP Satpel PVP Bantul' }}</h2>
+                <h2 class="fw-bold mb-1">{{ $tujuan->title ?? 'Tujuan LSP Satpel PVP Bantul' }}</h2>
+                @if($tujuan?->subtitle)
+                    <p class="text-muted mb-2">{{ $tujuan->subtitle }}</p>
+                @endif
                 <p class="text-muted mb-4">{{ $tujuan->description ?? 'Menguatkan pengakuan kompetensi dan mendukung percepatan penempatan kerja bagi peserta pelatihan.' }}</p>
                 @if(!empty($tujuan?->list_items))
                     <ul class="list-unstyled">
@@ -160,7 +175,10 @@
                         <div class="card border-0 shadow-sm h-100">
                             <img src="{{ $item->image_path ? asset($item->image_path) : 'https://placehold.co/350x220?text=Skema' }}" class="card-img-top" alt="{{ $item->title }}">
                             <div class="card-body d-flex flex-column">
-                                <h5 class="fw-semibold">{{ $item->title }}</h5>
+                                <h5 class="fw-semibold mb-1">{{ $item->title }}</h5>
+                                @if($item->subtitle)
+                                    <p class="text-muted small mb-2">{{ $item->subtitle }}</p>
+                                @endif
                                 <p class="text-muted flex-grow-1">{{ $item->description }}</p>
                                 @if($item->cta_text)
                                     <a href="{{ $item->cta_url ?? '#' }}" class="btn btn-outline-success rounded-pill mt-2">{{ $item->cta_text }}</a>
@@ -181,7 +199,10 @@
                         <div class="card border-0 shadow-sm h-100">
                             <img src="{{ $item->image_path ? asset($item->image_path) : 'https://placehold.co/350x220?text=Skema' }}" class="card-img-top" alt="{{ $item->title }}">
                             <div class="card-body d-flex flex-column">
-                                <h5 class="fw-semibold">{{ $item->title }}</h5>
+                                <h5 class="fw-semibold mb-1">{{ $item->title }}</h5>
+                                @if($item->subtitle)
+                                    <p class="text-muted small mb-2">{{ $item->subtitle }}</p>
+                                @endif
                                 <p class="text-muted flex-grow-1">{{ $item->description }}</p>
                                 @if($item->cta_text)
                                     <a href="{{ $item->cta_url ?? '#' }}" class="btn btn-outline-success rounded-pill mt-2">{{ $item->cta_text }}</a>
@@ -202,8 +223,11 @@
         <div class="row align-items-center g-4">
             <div class="col-lg-8 text-white">
                 <span class="badge bg-white text-primary fw-semibold mb-2">{{ $highlight->badge ?? 'Cek Hasil' }}</span>
-                <h2 class="fw-bold text-white">{{ $highlight->title ?? 'Sudah Ikut Uji Kompetensi?' }}</h2>
-                <p class="mb-0">{{ $highlight->description ?? 'Pantau hasil uji kompetensi Anda secara daring dan dapatkan sertifikat resmi dari Satpel PVP Bantul.' }}</p>
+                <h2 class="fw-bold text-white mb-1">{{ $highlight->title ?? 'Sudah Ikut Uji Kompetensi?' }}</h2>
+                @if($highlight?->subtitle)
+                    <p class="text-white-75">{{ $highlight->subtitle }}</p>
+                @endif
+                <p class="mb-0">{{ $highlight->description ?? 'Pantau hasil uji kompetensi Anda secara daring dan dapatkan sertifikat resmi.' }}</p>
             </div>
             <div class="col-lg-4 text-lg-end">
                 @if($highlight?->button_text)
