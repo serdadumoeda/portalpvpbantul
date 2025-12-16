@@ -57,12 +57,15 @@ class InfographicEmbedController extends Controller
 
     private function validateData(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'infographic_year_id' => 'required|exists:infographic_years,id',
             'title' => 'required|string|max:255',
             'url' => 'required|string|max:255',
-            'height' => 'nullable|integer',
-            'urutan' => 'nullable|integer',
+            'height' => 'nullable|integer|min:200|max:2000',
+            'urutan' => 'nullable|integer|min:0',
         ]);
+        $data['height'] = $data['height'] ?? 600;
+        $data['urutan'] = $data['urutan'] ?? 0;
+        return $data;
     }
 }

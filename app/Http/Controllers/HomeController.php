@@ -36,6 +36,7 @@ use App\Models\PpidRequest;
 use App\Models\AlumniTracer;
 use App\Http\Requests\AlumniTracerRequest;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Validation\ValidationException;
 
 class HomeController extends Controller
 {
@@ -277,7 +278,11 @@ class HomeController extends Controller
 
     public function kontak()
     {
-        return view('kontak');
+        $captcha = $this->prepareCaptcha(self::CONTACT_CAPTCHA_KEY);
+
+        return view('kontak', [
+            'captchaQuestion' => $captcha['question'],
+        ]);
     }
 
     public function ppid()
@@ -306,12 +311,12 @@ class HomeController extends Controller
     {
         $data = $request->validate([
             'nama' => 'required|string|max:255',
-            'nomor_identitas' => 'required|string|max:255',
+            'nomor_identitas' => 'required|digits_between:8,20',
             'npwp' => 'nullable|string|max:255',
             'pekerjaan' => 'required|string|max:255',
             'jenis_pemohon' => 'nullable|string|max:255',
             'alamat' => 'nullable|string',
-            'no_hp' => 'required|string|max:255',
+            'no_hp' => 'required|regex:/^[0-9+]{8,20}$/',
             'email' => 'required|email|max:255',
             'informasi_dimohon' => 'required|string',
             'tujuan_penggunaan' => 'nullable|string',
@@ -330,14 +335,17 @@ class HomeController extends Controller
 
     public function storeKontak(Request $request)
     {
-        $request->validate([
-            'nama' => 'required',
-            'email' => 'required|email',
-            'subjek' => 'required',
-            'pesan' => 'required'
+        $this->validate($request, [
+            'nama' => 'required|string|max:255',
+            'email' => 'required|email|max:255',
+            'subjek' => 'required|string|max:255',
+            'pesan' => 'required|string|max:2000',
+            'captcha_answer' => 'required|numeric',
         ]);
 
-        \App\Models\Pesan::create($request->all());
+        $this->validateCaptcha($request, self::CONTACT_CAPTCHA_KEY, 'captcha_answer');
+
+        \App\Models\Pesan::create($request->only(['nama', 'email', 'subjek', 'pesan']));
 
         return back()->with('success', 'Terima kasih! Pesan Anda telah kami terima.');
     }
@@ -450,11 +458,22 @@ class HomeController extends Controller
     public function alumniTracerForm()
     {
         $programs = Program::orderBy('judul')->get();
-        return view('alumni.tracer', compact('programs'));
+        $captcha = $this->prepareCaptcha(self::TRACER_CAPTCHA_KEY);
+
+        return view('alumni.tracer', [
+            'programs' => $programs,
+            'captchaQuestion' => $captcha['question'],
+        ]);
     }
 
     public function storeAlumniTracer(AlumniTracerRequest $request)
     {
+        $this->validate($request, [
+            'captcha_answer' => 'required|numeric',
+        ]);
+
+        $this->validateCaptcha($request, self::TRACER_CAPTCHA_KEY, 'captcha_answer');
+
         AlumniTracer::create(array_merge(
             $request->validated(),
             [
@@ -464,6 +483,52 @@ class HomeController extends Controller
         ));
 
         return redirect()->route('alumni.tracer')->with('success', 'Terima kasih, data tracer telah tersimpan.');
+    }
+
+    private const CONTACT_CAPTCHA_KEY = 'contact_form_captcha';
+    private const TRACER_CAPTCHA_KEY = 'tracer_form_captcha';
+
+    private function prepareCaptcha(string $sessionKey, bool $forceNew = false): array
+    {
+        if ($forceNew || !session()->has($sessionKey)) {
+            session([$sessionKey => $this->buildCaptchaPayload()]);
+        }
+
+        return session($sessionKey);
+    }
+
+    private function buildCaptchaPayload(): array
+    {
+        $first = random_int(3, 9);
+        $second = random_int(1, 9);
+        $operator = random_int(0, 1) === 1 ? '+' : '-';
+
+        if ($operator === '-' && $second > $first) {
+            [$first, $second] = [$second, $first];
+        }
+
+        $answer = $operator === '+' ? $first + $second : $first - $second;
+
+        return [
+            'question' => sprintf('%d %s %d = ?', $first, $operator, $second),
+            'answer' => $answer,
+        ];
+    }
+
+    private function validateCaptcha(Request $request, string $sessionKey, string $fieldName = 'captcha_answer'): void
+    {
+        $captcha = $this->prepareCaptcha($sessionKey);
+        $answer = trim((string) $request->input($fieldName));
+
+        if ($answer === '' || (int) $answer !== (int) $captcha['answer']) {
+            $this->prepareCaptcha($sessionKey, true);
+
+            throw ValidationException::withMessages([
+                $fieldName => 'Jawaban keamanan tidak sesuai. Silakan coba lagi.',
+            ]);
+        }
+
+        session()->forget($sessionKey);
     }
 
     public function pengumumanIndex(Request $request)

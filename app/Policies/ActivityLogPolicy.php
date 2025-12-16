@@ -16,4 +16,14 @@ class ActivityLogPolicy
     {
         return $user->hasPermission('manage-audit');
     }
+
+    public function delete(User $user, ActivityLog $log): bool
+    {
+        return $user->hasPermission('manage-audit');
+    }
+
+    public function deleteAny(User $user): bool
+    {
+        return $user->hasPermission('manage-audit');
+    }
 }

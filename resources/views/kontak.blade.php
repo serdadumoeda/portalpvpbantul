@@ -38,20 +38,32 @@
                 <div class="row">
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Nama Lengkap</label>
-                        <input type="text" name="nama" class="form-control bg-light" required>
+                        <input type="text" name="nama" value="{{ old('nama') }}" class="form-control bg-light @error('nama') is-invalid @enderror" required>
+                        @error('nama')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                     <div class="col-md-6 mb-3">
                         <label class="form-label">Email</label>
-                        <input type="email" name="email" class="form-control bg-light" required>
+                        <input type="email" name="email" value="{{ old('email') }}" class="form-control bg-light @error('email') is-invalid @enderror" required>
+                        @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                     </div>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Subjek</label>
-                    <input type="text" name="subjek" class="form-control bg-light" required>
+                    <input type="text" name="subjek" value="{{ old('subjek') }}" class="form-control bg-light @error('subjek') is-invalid @enderror" required>
+                    @error('subjek')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Isi Pesan</label>
-                    <textarea name="pesan" rows="5" class="form-control bg-light" required></textarea>
+                    <textarea name="pesan" rows="5" class="form-control bg-light @error('pesan') is-invalid @enderror" required>{{ old('pesan') }}</textarea>
+                    @error('pesan')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Verifikasi Keamanan</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light fw-semibold">{{ $captchaQuestion ?? '' }}</span>
+                        <input type="text" name="captcha_answer" class="form-control bg-light @error('captcha_answer') is-invalid @enderror" value="{{ old('captcha_answer') }}" placeholder="Masukkan jawaban" required>
+                    </div>
+                    @error('captcha_answer')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
                 </div>
                 <button type="submit" class="btn btn-primary px-4 py-2"><i class="fas fa-paper-plane me-2"></i> Kirim Pesan</button>
             </form>

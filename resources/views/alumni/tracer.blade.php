@@ -138,8 +138,18 @@
                     <textarea name="feedback" rows="4" class="form-control">{{ old('feedback') }}</textarea>
                 </div>
             </div>
-            <div class="mt-4 text-end">
-                <button type="submit" class="btn btn-primary px-4">Kirim Form</button>
+            <div class="row g-3 mt-4 align-items-end">
+                <div class="col-lg-6">
+                    <label class="form-label">Verifikasi Keamanan</label>
+                    <div class="input-group">
+                        <span class="input-group-text bg-light fw-semibold">{{ $captchaQuestion ?? '' }}</span>
+                        <input type="text" name="captcha_answer" class="form-control @error('captcha_answer') is-invalid @enderror" value="{{ old('captcha_answer') }}" placeholder="Masukkan jawaban" required>
+                    </div>
+                    @error('captcha_answer')<div class="invalid-feedback d-block">{{ $message }}</div>@enderror
+                </div>
+                <div class="col-lg-6 text-end">
+                    <button type="submit" class="btn btn-primary px-4">Kirim Form</button>
+                </div>
             </div>
         </form>
     </div>

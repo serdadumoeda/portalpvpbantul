@@ -20,6 +20,15 @@ class BeritaSeeder extends Seeder
 
         foreach ($samples as $index => $judul) {
             $kategori = $categories[$index % count($categories)];
+            $baseSlug = Str::slug($judul);
+            $slug = $baseSlug;
+            $counter = 1;
+
+            while (Berita::where('slug', $slug)->exists()) {
+                $counter++;
+                $slug = $baseSlug . '-' . $counter;
+            }
+
             Berita::create([
                 'judul' => $judul,
                 'kategori' => $kategori,
@@ -28,7 +37,7 @@ class BeritaSeeder extends Seeder
                 'excerpt' => 'Contoh ringkasan untuk berita ' . $judul . '.',
                 'published_at' => now()->subDays($index),
                 'gambar_utama' => 'https://placehold.co/800x400?text=' . urlencode($judul),
-                'slug' => Str::slug($judul) . '-' . ($index + 1),
+                'slug' => $slug,
             ]);
         }
     }

@@ -70,7 +70,7 @@ class PublicServiceFlowController extends Controller
         ]);
 
         $data['category'] = $data['category'] ?? 'pelayanan';
-        $data['is_active'] = $request->boolean('is_active', true);
+        $data['is_active'] = $request->boolean('is_active');
 
         return $data;
     }

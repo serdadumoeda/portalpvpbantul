@@ -111,6 +111,7 @@ class BrandingKpiController extends Controller
             'action' => route('admin.branding-kpi.store'),
             'method' => 'POST',
             'title' => 'Tambah Laporan Branding',
+            'indicatorDefinitions' => config('branding_kpi.indicators'),
         ]);
     }
 
@@ -133,6 +134,7 @@ class BrandingKpiController extends Controller
             'action' => route('admin.branding-kpi.update', $branding_kpi),
             'method' => 'PUT',
             'title' => 'Edit Laporan Branding',
+            'indicatorDefinitions' => config('branding_kpi.indicators'),
         ]);
     }
 

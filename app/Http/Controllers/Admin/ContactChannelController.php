@@ -60,7 +60,7 @@ class ContactChannelController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
-        $data['is_active'] = $request->boolean('is_active', true);
+        $data['is_active'] = $request->boolean('is_active');
 
         return $data;
     }

@@ -107,6 +107,15 @@
         <div id="form" class="bg-white rounded-4 shadow-sm p-4">
             <h4 class="fw-bold mb-2">{{ $setting->form_title ?? 'Permohonan Informasi Publik' }}</h4>
             <p class="text-muted mb-4">{{ $setting->form_description ?? 'Silakan isi formulir berikut untuk mengajukan permohonan informasi publik Satpel PVP Bantul.' }}</p>
+            @if($setting->form_embed)
+                @php
+                    $embed = $setting->form_embed;
+                    $isIframe = \Illuminate\Support\Str::contains($embed, '<iframe');
+                @endphp
+                <div class="ratio ratio-16x9 mb-4">
+                    {!! $isIframe ? $embed : '<iframe src="'.e($embed).'" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>' !!}
+                </div>
+            @endif
 
             @if(session('success'))
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -181,7 +190,8 @@
                 </div>
                 <div class="mt-3">
                     <label class="form-label">Unggah Tanda Tangan (JPG/PNG/PDF)</label>
-                    <input type="file" name="tanda_tangan" class="form-control bg-light">
+                    <input type="file" name="tanda_tangan" class="form-control bg-light" accept=".jpg,.jpeg,.png,.pdf">
+                    <small class="text-muted">Format JPG/PNG/PDF dengan ukuran maksimal 2 MB.</small>
                 </div>
 
                 <div class="text-end mt-4">

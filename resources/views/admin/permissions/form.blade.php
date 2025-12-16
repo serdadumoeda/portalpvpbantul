@@ -20,12 +20,22 @@
             </div>
             <div class="col-md-4">
                 <label class="form-label">Label</label>
-                <input type="text" name="label" class="form-control" value="{{ old('label', $permission->label ?? '') }}">
+                <input type="text" name="label" class="form-control" value="{{ old('label', $permission->label ?? '') }}" list="permission-label-options">
+                <datalist id="permission-label-options">
+                    @foreach($labelOptions as $option)
+                        <option value="{{ $option }}">
+                    @endforeach
+                </datalist>
                 @error('label') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
             <div class="col-md-4">
                 <label class="form-label">Module</label>
-                <input type="text" name="module" class="form-control" value="{{ old('module', $permission->module ?? '') }}">
+                <input type="text" name="module" class="form-control" value="{{ old('module', $permission->module ?? '') }}" list="permission-module-options">
+                <datalist id="permission-module-options">
+                    @foreach($moduleOptions as $option)
+                        <option value="{{ $option }}">
+                    @endforeach
+                </datalist>
                 @error('module') <small class="text-danger">{{ $message }}</small> @enderror
             </div>
 

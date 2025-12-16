@@ -61,16 +61,17 @@ class InfographicYearController extends Controller
     private function validateData(Request $request): array
     {
         $data = $request->validate([
-            'tahun' => 'required|string|max:10',
+            'tahun' => 'required|digits:4',
             'title' => 'nullable|string|max:255',
             'headline' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'hero_button_text' => 'nullable|string|max:100',
             'hero_button_link' => 'nullable|string|max:255',
-            'urutan' => 'nullable|integer',
+            'urutan' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
             'hero_image' => 'nullable|image|max:2048',
         ]);
+        $data['urutan'] = $data['urutan'] ?? 0;
         $data['is_active'] = $request->boolean('is_active');
         return $data;
     }

@@ -33,6 +33,8 @@ class PermissionController extends Controller
             'method' => 'POST',
             'permission' => new Permission(),
             'roles' => Role::orderBy('label')->get(),
+            'labelOptions' => Permission::whereNotNull('label')->distinct()->pluck('label')->filter()->values(),
+            'moduleOptions' => Permission::whereNotNull('module')->distinct()->pluck('module')->filter()->values(),
         ]);
     }
 
@@ -60,6 +62,8 @@ class PermissionController extends Controller
             'method' => 'PUT',
             'permission' => $permission->load('roles'),
             'roles' => Role::orderBy('label')->get(),
+            'labelOptions' => Permission::whereNotNull('label')->distinct()->pluck('label')->filter()->values(),
+            'moduleOptions' => Permission::whereNotNull('module')->distinct()->pluck('module')->filter()->values(),
         ]);
     }
 

@@ -57,11 +57,13 @@ class InfographicMetricController extends Controller
 
     private function validateData(Request $request): array
     {
-        return $request->validate([
+        $data = $request->validate([
             'infographic_year_id' => 'required|exists:infographic_years,id',
             'label' => 'required|string|max:255',
             'value' => 'required|string|max:255',
-            'urutan' => 'nullable|integer',
+            'urutan' => 'nullable|integer|min:0',
         ]);
+        $data['urutan'] = $data['urutan'] ?? 0;
+        return $data;
     }
 }

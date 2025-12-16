@@ -8,10 +8,97 @@
     --gradient-primary: linear-gradient(135deg, rgba(7,60,108,.92), rgba(7,108,103,.85));
 }
 
+html, body {
+    min-height: 100%;
+}
+
 body {
     background: var(--color-surface);
     color: var(--color-text);
     font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif;
+    display: flex;
+    flex-direction: column;
+}
+
+.site-main {
+    flex: 1 0 auto;
+    background: #fff;
+}
+
+.main-navbar {
+    background: #fff;
+    box-shadow: 0 6px 18px -8px rgba(15, 23, 42, 0.25);
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+}
+
+.main-navbar .nav-link {
+    font-weight: 600;
+    color: #1f2d3d;
+}
+
+.main-navbar .nav-link:hover,
+.main-navbar .nav-link.active {
+    color: var(--color-highlight) !important;
+}
+
+.navbar-brand .brand-tagline {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #64748b;
+}
+
+.navbar-brand .brand-name {
+    color: var(--color-primary);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.badge-primary-soft {
+    background: #e7f5f2;
+    color: var(--color-highlight);
+}
+
+.rounded-4 {
+    border-radius: 1rem;
+}
+
+.shadow-soft {
+    box-shadow: 0 12px 30px -12px rgba(0,0,0,0.18);
+}
+
+.marquee-box {
+    background: #f2fbf9;
+    border: 1px solid #d9f0ec;
+    border-radius: 1rem;
+}
+
+.section-title {
+    font-weight: 700;
+}
+
+.site-footer {
+    background: #178c80;
+    color: #fff;
+}
+
+.site-footer a {
+    color: #fff;
+}
+
+.hero-shape {
+    position: absolute;
+    top: -60px;
+    right: -80px;
+    width: 280px;
+    opacity: 0.08;
+}
+
+.card {
+    border-radius: 14px;
 }
 
 .btn-primary {

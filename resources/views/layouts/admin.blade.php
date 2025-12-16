@@ -6,154 +6,12 @@
     <title>Admin Panel - Satpel PVP Bantul</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <style>
-        :root {
-            --sidebar-width: 280px;
-            --primary: #2563eb;
-            --primary-dark: #1e3a8a;
-            --text-muted: #94a3b8;
-        }
-        html, body { height: 100%; }
-        body {
-            background: linear-gradient(135deg, #eef2ff, #e0f2fe);
-            font-family: 'Inter', 'Segoe UI', sans-serif;
-            color: #1f2937;
-            transition: background 0.3s ease;
-        }
-        .admin-wrapper { min-height: 100vh; display: flex; }
-        .sidebar {
-            width: var(--sidebar-width);
-            background: linear-gradient(180deg, #0f172a, #1f2937);
-            color: #f8fafc;
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: 0;
-            overflow-y: auto;
-            padding-bottom: 2rem;
-            box-shadow: 8px 0 30px rgba(15, 23, 42, 0.35);
-            transition: transform 0.3s ease;
-            z-index: 1045;
-        }
-        .sidebar::-webkit-scrollbar { width: 6px; }
-        .sidebar::-webkit-scrollbar-thumb { background-color: rgba(255,255,255,0.25); border-radius: 50px; }
-        .sidebar-header {
-            padding: 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-        }
-        .sidebar-header .brand-logo {
-            height: 42px;
-            width: auto;
-        }
-        .sidebar-header h4 {
-            font-size: 1.15rem;
-            letter-spacing: 0.04em;
-            margin-bottom: 0.25rem;
-        }
-        .sidebar-header small { color: var(--text-muted); }
-        .sidebar-menu { padding: 1rem 0.75rem; }
-        .menu-group { margin-bottom: 1rem; border-radius: 12px; background-color: rgba(255,255,255,0.02); }
-        .menu-group-header {
-            width: 100%;
-            text-align: left;
-            border: none;
-            background: transparent;
-            color: #cbd5f5;
-            font-size: 0.85rem;
-            letter-spacing: 0.08em;
-            padding: 0.85rem 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-        .menu-group-header:hover { color: white; }
-        .submenu {
-            max-height: 0;
-            overflow: hidden;
-            transition: max-height 0.3s ease;
-        }
-        .submenu.show { max-height: 1000px; }
-        .submenu a {
-            color: #e2e8f0;
-            text-decoration: none;
-            padding: 0.65rem 1.25rem;
-            display: flex;
-            align-items: center;
-            border-left: 3px solid transparent;
-            gap: 0.65rem;
-            font-size: 0.95rem;
-        }
-        .submenu a i { width: 18px; text-align: center; }
-        .submenu a:hover,
-        .submenu a.active {
-            background: rgba(37, 99, 235, 0.15);
-            border-color: var(--primary);
-            color: white;
-        }
-        .content-area {
-            margin-left: var(--sidebar-width);
-            flex: 1;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            padding: 2rem;
-            gap: 1.5rem;
-        }
-        .content-card {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 40px rgba(15, 23, 42, 0.08);
-            padding: 1.5rem;
-            flex: 1;
-        }
-        .topbar {
-            background: white;
-            border-radius: 16px;
-            padding: 1rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            box-shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
-            gap: 1rem;
-        }
-        .topbar h1 {
-            font-size: 1.35rem;
-            margin: 0;
-        }
-        .btn-logout {
-            background: linear-gradient(135deg, #ef4444, #b91c1c);
-            border: none;
-            color: white;
-        }
-        .sidebar-toggle {
-            border: none;
-            background: rgba(37, 99, 235, 0.15);
-            color: var(--primary);
-            border-radius: 999px;
-            padding: 0.5rem 0.9rem;
-        }
-        .sidebar-toggle:focus { outline: none; box-shadow: 0 0 0 3px rgba(37,99,235,0.25); }
-        @media (max-width: 991.98px) {
-            .content-area { margin-left: 0; padding: 1.5rem 1rem; }
-            .sidebar { transform: translateX(-100%); }
-            body.sidebar-open .sidebar { transform: translateX(0); }
-            .sidebar-overlay {
-                position: fixed;
-                inset: 0;
-                background: rgba(15, 23, 42, 0.5);
-                opacity: 0;
-                pointer-events: none;
-                transition: opacity 0.3s ease;
-                z-index: 1040;
-            }
-            body.sidebar-open .sidebar-overlay {
-                opacity: 1;
-                pointer-events: all;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="{{ asset('css/admin.css') }}">
+    @stack('styles')
 </head>
 <body>
+    @php($adminUser = auth()->user())
+    <div class="admin-wrapper">
     <div class="sidebar" id="adminSidebar">
         <div class="sidebar-header d-flex justify-content-between align-items-start">
             <div class="d-flex align-items-center gap-3">
@@ -348,25 +206,42 @@
                     <i class="fas fa-bars"></i>
                 </button>
                 <div>
-                    <h1>Selamat Datang, Admin!</h1>
-                    <small class="text-muted">Kelola seluruh konten dan layanan BPVP Bantul.</small>
+                    <div class="admin-breadcrumb">
+                        <a href="{{ route('admin.dashboard') }}">Dashboard</a>
+                        <span>/</span>
+                        <span>@yield('page_title', 'Panel Admin')</span>
+                    </div>
+                    <h1 class="mb-0">Halo, {{ $adminUser->name ?? 'Admin' }} 👋</h1>
+                    <div class="admin-meta">
+                        {{ now()->translatedFormat('l, d F Y') }} · {{ $adminUser->email ?? 'Satpel PVP Bantul' }}
+                    </div>
                 </div>
             </div>
-            <form action="{{ route('logout') }}" method="POST" class="d-inline">
+            <div class="d-flex align-items-center gap-3 flex-wrap">
+                <div class="quick-actions">
+                    <a href="{{ route('admin.berita.create') }}" class="btn btn-outline-primary btn-sm"><i class="fas fa-plus me-1"></i> Berita</a>
+                    <a href="{{ route('home') }}" target="_blank" class="btn btn-outline-secondary btn-sm"><i class="fas fa-globe me-1"></i> Lihat FE</a>
+                </div>
+                <form action="{{ route('logout') }}" method="POST" class="d-inline">
                 @csrf
                 <button type="submit" class="btn btn-logout btn-sm px-3"><i class="fas fa-arrow-right-from-bracket me-1"></i> Logout</button>
             </form>
+            </div>
         </div>
 
         <div class="content-card">
             @if(session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
+            @if(session('error'))
+                <div class="alert alert-danger">{{ session('error') }}</div>
+            @endif
 
             @yield('content')
         </div>
     </div>
 
+    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>

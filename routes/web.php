@@ -53,7 +53,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/profil', function () { return view('profil'); })->name('profil');
 Route::get('/program', [HomeController::class, 'katalogPelatihan'])->name('program');
-Route::get('/kontak', function () { return view('kontak'); })->name('kontak');
+Route::get('/kontak', [HomeController::class, 'kontak'])->name('kontak');
 Route::get('/alumni/tracer', [HomeController::class, 'alumniTracerForm'])->name('alumni.tracer');
 Route::post('/alumni/tracer', [HomeController::class, 'storeAlumniTracer'])->name('alumni.tracer.store');
 
@@ -88,11 +88,13 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
 
-Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () {
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-admin'])->group(function () {
     
     Route::get('/', App\Http\Controllers\Admin\DashboardController::class)->name('dashboard');
 
     Route::resource('berita', BeritaController::class);
+    Route::patch('berita/{berita}/submit', [BeritaController::class, 'submit'])->name('berita.submit');
+    Route::patch('berita/{berita}/approve', [BeritaController::class, 'approve'])->name('berita.approve')->middleware('permission:approve-content');
     Route::resource('program', ProgramController::class); 
     Route::resource('galeri', GaleriController::class);   
     Route::resource('pengumuman', PengumumanController::class);
@@ -141,6 +143,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function () 
     Route::resource('roles', RoleController::class)->except(['show'])->middleware('permission:manage-access');
     Route::resource('permissions', PermissionController::class)->except(['show'])->middleware('permission:manage-access');
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index')->middleware('permission:manage-audit');
+    Route::delete('activity-logs/{activity_log}', [ActivityLogController::class, 'destroy'])->name('activity-logs.destroy')->middleware('permission:manage-audit');
+    Route::delete('activity-logs', [ActivityLogController::class, 'clear'])->name('activity-logs.clear')->middleware('permission:manage-audit');
     Route::get('branding-kpi/{branding_kpi}/download', [BrandingKpiController::class, 'download'])->name('branding-kpi.download');
     Route::resource('branding-kpi', BrandingKpiController::class);
 });

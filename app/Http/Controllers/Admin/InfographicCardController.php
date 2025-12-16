@@ -61,13 +61,14 @@ class InfographicCardController extends Controller
             'infographic_year_id' => 'required|exists:infographic_years,id',
             'title' => 'required|string|max:255',
             'entries' => 'nullable|string',
-            'urutan' => 'nullable|integer',
+            'urutan' => 'nullable|integer|min:0',
         ]);
         $entries = [];
         if (!empty($data['entries'])) {
             $entries = array_values(array_filter(array_map('trim', preg_split("/(\r?\n)+/", $data['entries']))));
         }
         $data['entries'] = $entries;
+        $data['urutan'] = $data['urutan'] ?? 0;
         return $data;
     }
 }

@@ -9,7 +9,13 @@
     <a href="{{ route('resource.pelayanan') }}" target="_blank" class="btn btn-outline-primary btn-sm">Lihat Halaman</a>
 </div>
 
-<form action="{{ route('admin.public-service.settings.update') }}" method="POST" enctype="multipart/form-data" class="bg-white rounded shadow-sm p-4">
+@if($errors->any())
+    <div class="alert alert-danger">
+        <strong>Validasi gagal.</strong> Beberapa kolom tidak memenuhi batasan atau file tidak sesuai ketentuan.
+    </div>
+@endif
+
+<form action="{{ route('admin.public-service.settings.update') }}" method="POST" enctype="multipart/form-data" class="bg-white rounded shadow-sm p-4" novalidate>
     @csrf
     @method('PUT')
     <div class="row g-4">
@@ -17,31 +23,41 @@
             <h5 class="fw-bold">Hero Section</h5>
             <div class="mb-3">
                 <label class="form-label">Judul</label>
-                <input type="text" name="hero_title" class="form-control" value="{{ old('hero_title', $setting->hero_title) }}">
+                <input type="text" name="hero_title" class="form-control @error('hero_title') is-invalid @enderror" value="{{ old('hero_title', $setting->hero_title) }}" maxlength="255">
+                @error('hero_title') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="mb-3">
                 <label class="form-label">Subjudul</label>
-                <input type="text" name="hero_subtitle" class="form-control" value="{{ old('hero_subtitle', $setting->hero_subtitle) }}">
+                <input type="text" name="hero_subtitle" class="form-control @error('hero_subtitle') is-invalid @enderror" value="{{ old('hero_subtitle', $setting->hero_subtitle) }}" maxlength="255">
+                @error('hero_subtitle') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="mb-3">
                 <label class="form-label">Deskripsi</label>
-                <textarea name="hero_description" rows="3" class="form-control">{{ old('hero_description', $setting->hero_description) }}</textarea>
+                <textarea name="hero_description" rows="3" class="form-control @error('hero_description') is-invalid @enderror">{{ old('hero_description', $setting->hero_description) }}</textarea>
+                @error('hero_description') <div class="invalid-feedback">{{ $message }}</div> @enderror
             </div>
             <div class="row">
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Teks Tombol</label>
-                    <input type="text" name="hero_button_text" class="form-control" value="{{ old('hero_button_text', $setting->hero_button_text) }}">
+                    <input type="text" name="hero_button_text" class="form-control @error('hero_button_text') is-invalid @enderror" value="{{ old('hero_button_text', $setting->hero_button_text) }}" maxlength="150">
+                    @error('hero_button_text') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Link Tombol</label>
-                    <input type="text" name="hero_button_link" class="form-control" value="{{ old('hero_button_link', $setting->hero_button_link) }}">
+                    <input type="text" name="hero_button_link" class="form-control @error('hero_button_link') is-invalid @enderror" value="{{ old('hero_button_link', $setting->hero_button_link) }}" maxlength="255">
+                    @error('hero_button_link') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
             </div>
             <div class="mb-3">
                 <label class="form-label">Gambar Hero</label>
-                <input type="file" name="hero_image" class="form-control">
+                <input type="file" name="hero_image" class="form-control @error('hero_image') is-invalid @enderror" accept=".jpg,.jpeg,.png">
+                <small class="text-muted d-block">Format JPG/PNG, ukuran maksimal 2 MB.</small>
+                @error('hero_image') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                 @if($setting->hero_image)
-                    <small class="text-muted d-block mt-1">Saat ini: {{ $setting->hero_image }}</small>
+                    <div class="mt-2">
+                        <img src="{{ asset($setting->hero_image) }}" alt="Hero" class="img-fluid rounded shadow-sm" style="max-height:180px; object-fit:cover;">
+                        <p class="text-muted small mb-0">Saat ini: {{ $setting->hero_image }}</p>
+                    </div>
                 @endif
             </div>
         </div>
@@ -98,9 +114,14 @@
             </div>
             <div class="mb-3">
                 <label class="form-label">Gambar Banner</label>
-                <input type="file" name="policy_image" class="form-control">
+                <input type="file" name="policy_image" class="form-control @error('policy_image') is-invalid @enderror" accept=".jpg,.jpeg,.png">
+                <small class="text-muted d-block">Format JPG/PNG, maksimal 2 MB.</small>
+                @error('policy_image') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                 @if($setting->policy_image)
-                    <small class="text-muted d-block mt-1">Saat ini: {{ $setting->policy_image }}</small>
+                    <div class="mt-2">
+                        <img src="{{ asset($setting->policy_image) }}" alt="Banner Maklumat" class="img-fluid rounded shadow-sm" style="max-height:180px; object-fit:cover;">
+                        <p class="text-muted small mb-0">Saat ini: {{ $setting->policy_image }}</p>
+                    </div>
                 @endif
             </div>
         </div>
@@ -129,9 +150,13 @@
                 </div>
                 <div class="col-md-6 mb-3">
                     <label class="form-label">Upload Dokumen (PDF)</label>
-                    <input type="file" name="standard_document_file" class="form-control">
+                    <input type="file" name="standard_document_file" class="form-control @error('standard_document_file') is-invalid @enderror" accept=".pdf">
+                    <small class="text-muted d-block">Format PDF, ukuran maksimal 4 MB.</small>
+                    @error('standard_document_file') <div class="invalid-feedback d-block">{{ $message }}</div> @enderror
                     @if($setting->standard_document_file)
-                        <small class="text-muted d-block mt-1">Saat ini: {{ $setting->standard_document_file }}</small>
+                        <a href="{{ asset($setting->standard_document_file) }}" target="_blank" class="d-inline-flex align-items-center gap-2 mt-2">
+                            <i class="fas fa-file-pdf text-danger"></i> Lihat dokumen saat ini
+                        </a>
                     @endif
                 </div>
             </div>

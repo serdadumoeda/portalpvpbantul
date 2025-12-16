@@ -61,7 +61,8 @@ class FaqItemController extends Controller
             'is_active' => 'nullable|boolean',
         ]);
 
-        $data['is_active'] = $request->boolean('is_active', true);
+        $data['urutan'] = $data['urutan'] ?? 0;
+        $data['is_active'] = $request->boolean('is_active');
 
         return $data;
     }

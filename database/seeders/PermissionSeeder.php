@@ -24,6 +24,7 @@ class PermissionSeeder extends Seeder
             ['name' => 'manage-public-service', 'label' => 'Kelola Pelayanan Publik', 'module' => 'layanan'],
             ['name' => 'manage-ppid', 'label' => 'Kelola PPID', 'module' => 'layanan'],
             ['name' => 'manage-settings', 'label' => 'Kelola Pengaturan Situs', 'module' => 'system'],
+            ['name' => 'access-admin', 'label' => 'Akses Panel Admin', 'module' => 'system'],
         ];
 
         foreach ($permissions as $permission) {
@@ -40,7 +41,7 @@ class PermissionSeeder extends Seeder
                 'manage-gallery',
                 'manage-faq',
             ])->pluck('id')->all(),
-            'viewer' => [],
+            'viewer' => Permission::where('name', 'access-admin')->pluck('id')->all(),
         ];
 
         foreach ($rolePermissions as $roleName => $permissionIds) {

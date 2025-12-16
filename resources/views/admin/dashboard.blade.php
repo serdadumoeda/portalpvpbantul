@@ -2,88 +2,78 @@
 
 @section('content')
 <div class="row g-4 mb-4">
-    <div class="col-lg-3 col-md-6">
-        <div class="card shadow border-0 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1">Total Berita</p>
-                        <h3 class="fw-bold">{{ $metrics['berita'] }}</h3>
+    @php
+        $metricCards = [
+            ['label' => 'Total Berita', 'value' => $metrics['berita'], 'icon' => 'fa-newspaper', 'theme' => 'primary'],
+            ['label' => 'Program Pelatihan', 'value' => $metrics['program'], 'icon' => 'fa-graduation-cap', 'theme' => 'success'],
+            ['label' => 'Pengumuman Aktif', 'value' => $metrics['pengumuman'], 'icon' => 'fa-bullhorn', 'theme' => 'warning'],
+            ['label' => 'Pesan Masuk', 'value' => $metrics['pesan'], 'icon' => 'fa-envelope-open-text', 'theme' => 'danger', 'subtext' => $pesanUnread . ' belum diproses'],
+            ['label' => 'Total Kunjungan', 'value' => number_format($metrics['visits']), 'icon' => 'fa-chart-line', 'theme' => 'info', 'subtext' => '7 hari terakhir: ' . $visitTrend->sum('total')],
+            ['label' => 'Data Tracer Alumni', 'value' => $metrics['alumniTracer'], 'icon' => 'fa-user-graduate', 'theme' => 'secondary', 'subtext' => 'Update real-time dari form tracer'],
+        ];
+    @endphp
+    @foreach($metricCards as $card)
+        <div class="col-xl-2 col-md-4 col-sm-6">
+            <div class="card shadow-sm border-0 h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <p class="text-muted mb-1 small">{{ $card['label'] }}</p>
+                            <h4 class="fw-bold mb-0">{{ $card['value'] }}</h4>
+                            @isset($card['subtext'])
+                                <small class="text-muted">{{ $card['subtext'] }}</small>
+                            @endisset
+                        </div>
+                        <span class="badge bg-{{ $card['theme'] }}-subtle text-{{ $card['theme'] }} p-3 rounded-circle">
+                            <i class="fas {{ $card['icon'] }}"></i>
+                        </span>
                     </div>
-                    <span class="badge bg-primary-subtle text-primary p-3 rounded-circle">
-                        <i class="fas fa-newspaper"></i>
-                    </span>
                 </div>
             </div>
         </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="card shadow border-0 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1">Program Pelatihan</p>
-                        <h3 class="fw-bold">{{ $metrics['program'] }}</h3>
-                    </div>
-                    <span class="badge bg-success-subtle text-success p-3 rounded-circle">
-                        <i class="fas fa-graduation-cap"></i>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="card shadow border-0 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1">Pengumuman Aktif</p>
-                        <h3 class="fw-bold">{{ $metrics['pengumuman'] }}</h3>
-                    </div>
-                    <span class="badge bg-warning-subtle text-warning p-3 rounded-circle">
-                        <i class="fas fa-bullhorn"></i>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="card shadow border-0 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1">Pesan Masuk</p>
-                        <h3 class="fw-bold">{{ $metrics['pesan'] }}</h3>
-                        <small class="text-danger">{{ $pesanUnread }} belum diproses</small>
-                    </div>
-                    <span class="badge bg-danger-subtle text-danger p-3 rounded-circle">
-                        <i class="fas fa-envelope-open-text"></i>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-3 col-md-6">
-        <div class="card shadow border-0 h-100">
-            <div class="card-body">
-                <div class="d-flex justify-content-between align-items-center">
-                    <div>
-                        <p class="text-muted mb-1">Total Kunjungan</p>
-                        <h3 class="fw-bold">{{ number_format($metrics['visits']) }}</h3>
-                        <small class="text-muted">7 hari terakhir: {{ $visitTrend->sum('total') }}</small>
-                    </div>
-                    <span class="badge bg-info-subtle text-info p-3 rounded-circle">
-                        <i class="fas fa-chart-line"></i>
-                    </span>
-                </div>
-            </div>
-        </div>
-    </div>
+    @endforeach
 </div>
 
+@if($latestBrandingKpi)
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-header bg-white border-0 d-flex justify-content-between flex-wrap gap-2 align-items-center">
+            <div>
+                <h5 class="mb-0">Kinerja KPI Branding</h5>
+                <small class="text-muted">Periode {{ \Carbon\Carbon::create($latestBrandingKpi->year, $latestBrandingKpi->month)->translatedFormat('F Y') }}</small>
+            </div>
+            <a href="{{ route('admin.branding-kpi.index') }}" class="btn btn-sm btn-outline-primary">Kelola KPI</a>
+        </div>
+        <div class="card-body">
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-3">
+                @foreach($brandingIndicators as $key => $indicator)
+                    @php
+                        $current = $latestBrandingKpi->{$key . '_current'};
+                        $target = $latestBrandingKpi->{$key . '_target'};
+                        $percentage = $target ? round(($current / $target) * 100, 1) : null;
+                        $state = $percentage >= 100 ? 'success' : ($percentage >= 80 ? 'warning' : 'danger');
+                    @endphp
+                    <div class="col">
+                        <div class="border rounded-3 h-100 p-3">
+                            <p class="text-muted text-uppercase small mb-1">{{ $indicator['category'] }}</p>
+                            <h6 class="fw-semibold mb-2">{{ $indicator['label'] }}</h6>
+                            <div class="d-flex justify-content-between align-items-end">
+                                <div>
+                                    <div class="fs-3 fw-bold">{{ $current ?? '0' }}</div>
+                                    <small class="text-muted">Target: {{ $target ?? 'Belum diisi' }}</small>
+                                </div>
+                                <span class="badge bg-{{ $state }}-subtle text-{{ $state }}">{{ $percentage ? $percentage.'%' : 'N/A' }}</span>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    </div>
+@endif
+
 <div class="row g-4">
-    <div class="col-lg-8">
-        <div class="card shadow border-0 mb-4">
+    <div class="col-lg-6">
+        <div class="card shadow border-0 h-100">
             <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
                 <div>
                     <h5 class="mb-0">Tren Berita Minggu Ini</h5>
@@ -94,8 +84,49 @@
                 <canvas id="newsTrendChart" height="120"></canvas>
             </div>
         </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card shadow border-0 h-100">
+            <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="mb-0">Analisis Cohort Alumni</h5>
+                    <small class="text-muted">Distribusi status per tahun kelulusan</small>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="cohortChart" height="140"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
 
-        <div class="card shadow border-0">
+<div class="row g-4 mt-1">
+    <div class="col-lg-8">
+        <div class="card shadow border-0 h-100">
+            <div class="card-header bg-white border-0">
+                <h5 class="mb-0">Funnel Layanan 30 Hari</h5>
+                <small class="text-muted">Perjalanan pengguna dari kunjungan hingga tracer</small>
+            </div>
+            <div class="card-body">
+                <canvas id="funnelChart" height="220"></canvas>
+                <ul class="mt-3 list-unstyled small">
+                    @php $previous = null; @endphp
+                    @foreach($funnelStages as $label => $value)
+                        @php
+                            $conversion = $previous && $previous > 0 ? round(($value / $previous) * 100, 1) : null;
+                            $previous = $value ?: $previous;
+                        @endphp
+                        <li class="d-flex justify-content-between py-1 border-bottom">
+                            <span>{{ $label }}</span>
+                            <span class="fw-semibold">{{ number_format($value) }} @if(!is_null($conversion))<small class="text-muted">({{ $conversion }}%)</small>@endif</span>
+                        </li>
+                    @endforeach
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card shadow border-0 h-100">
             <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
                 <div>
                     <h5 class="mb-0">Aktivitas Terbaru</h5>
@@ -120,6 +151,9 @@
             </div>
         </div>
     </div>
+</div>
+
+<div class="row g-4 mt-1">
     <div class="col-lg-4">
         <div class="card shadow border-0 mb-4">
             <div class="card-header bg-white border-0">
@@ -143,7 +177,8 @@
                 </ul>
             </div>
         </div>
-
+    </div>
+    <div class="col-lg-4">
         <div class="card shadow border-0">
             <div class="card-body">
                 <h5 class="fw-semibold mb-3">Selamat Datang Kembali!</h5>
@@ -185,6 +220,59 @@
                 scales: {
                     y: { beginAtZero: true, ticks: { precision: 0 } }
                 }
+            }
+        });
+        const cohortCtx = document.getElementById('cohortChart').getContext('2d');
+        new Chart(cohortCtx, {
+            type: 'bar',
+            data: {
+                labels: {!! $cohortYears->map(fn($year) => (string) $year)->values()->toJson() !!},
+                datasets: [
+                    @php
+                        $statusColors = [
+                            'employed' => 'rgba(37, 99, 235, 0.8)',
+                            'entrepreneur' => 'rgba(16, 185, 129, 0.8)',
+                            'studying' => 'rgba(249, 115, 22, 0.8)',
+                            'seeking' => 'rgba(239, 68, 68, 0.8)',
+                            'other' => 'rgba(107, 114, 128, 0.8)',
+                        ];
+                    @endphp
+                    @foreach($cohortStatusMap as $key => $label)
+                        {
+                            label: '{{ $label }}',
+                            data: {!! $cohortDatasets[$key]->values()->toJson() !!},
+                            backgroundColor: '{{ $statusColors[$key] ?? 'rgba(99,102,241,0.8)' }}',
+                            stack: 'cohort'
+                        },
+                    @endforeach
+                ]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    x: { stacked: true },
+                    y: { stacked: true, beginAtZero: true }
+                }
+            }
+        });
+
+        const funnelCtx = document.getElementById('funnelChart').getContext('2d');
+        new Chart(funnelCtx, {
+            type: 'bar',
+            data: {
+                labels: {!! json_encode(array_keys($funnelStages)) !!},
+                datasets: [{
+                    label: 'Total',
+                    data: {!! json_encode(array_values($funnelStages)) !!},
+                    backgroundColor: 'rgba(56, 189, 248, 0.8)'
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                scales: {
+                    x: { beginAtZero: true, suggestedMax: {{ $funnelMax }} }
+                },
+                plugins: { legend: { display: false } }
             }
         });
     </script>

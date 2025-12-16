@@ -71,7 +71,10 @@
     <div class="container">
         <div class="row align-items-center g-4">
             <div class="col-lg-6">
-                <span class="badge bg-white text-primary fw-semibold mb-3">Infografis Data Alumni</span>
+                <span class="badge bg-white text-primary fw-semibold mb-2">Infografis Data Alumni</span>
+                @if($heroYear?->title)
+                    <p class="text-uppercase small text-white-50 mb-2">{{ $heroYear->title }}</p>
+                @endif
                 <h1 class="display-5 fw-bold text-white">{{ $heroTitle }}</h1>
                 <p class="text-white-50 mb-4">{{ $heroDescription }}</p>
                 @if($heroYear?->hero_button_link)
@@ -94,7 +97,10 @@
 
         @forelse($years as $block)
             <div class="section-divider"></div>
-            <h4 class="fw-bold mb-3">Tahun {{ $block->tahun }}</h4>
+            <h4 class="fw-bold mb-1">Tahun {{ $block->tahun }}</h4>
+            @if($block->title)
+                <p class="text-muted mb-3">{{ $block->title }}</p>
+            @endif
             <div class="dashboard-frame mb-4">
                 <div class="dashboard-header text-center">
                     DASHBOARD INFOGRAFIS PELATIHAN BERBASIS KOMPETENSI (PBK) BPVP BANTUL {{ $block->tahun }}
@@ -119,7 +125,7 @@
                         <div class="mt-4">
                             @foreach($block->embeds as $embed)
                                 <h6 class="fw-bold mb-2">{{ $embed->title }}</h6>
-                                <div class="ratio ratio-16x9 mb-4">
+                                <div class="ratio ratio-16x9 mb-4" style="min-height: {{ $embed->height ?? 600 }}px;">
                                     <iframe src="{{ $embed->url }}" style="border:0;" allowfullscreen height="{{ $embed->height ?? 600 }}"></iframe>
                                 </div>
                             @endforeach

@@ -10,5 +10,10 @@ class Pesan extends Model
 {
     use HasUuid;
 
-    //
+    protected $fillable = [
+        'nama',
+        'email',
+        'subjek',
+        'pesan',
+    ];
 }

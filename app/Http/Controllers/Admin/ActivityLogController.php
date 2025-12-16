@@ -40,4 +40,23 @@ class ActivityLogController extends Controller
 
         return view('admin.activity_logs.index', compact('logs', 'users', 'actions', 'filters'));
     }
+
+    public function destroy(ActivityLog $activity_log)
+    {
+        $this->authorize('delete', $activity_log);
+        $activity_log->delete();
+
+        return redirect()->route('admin.activity-logs.index')
+            ->with('success', 'Log berhasil dihapus.');
+    }
+
+    public function clear(Request $request)
+    {
+        $this->authorize('deleteAny', ActivityLog::class);
+
+        ActivityLog::query()->delete();
+
+        return redirect()->route('admin.activity-logs.index')
+            ->with('success', 'Seluruh log sudah dibersihkan.');
+    }
 }

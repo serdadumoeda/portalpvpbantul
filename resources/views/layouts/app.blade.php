@@ -3,30 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Satpel PVP Bantul - Kemnaker RI</title>
+    @php
+        $globalSettings = $footerSettings ?? collect();
+        $siteName = $globalSettings['site_name'] ?? 'Satpel PVP Bantul';
+        $siteTagline = $globalSettings['site_tagline'] ?? 'Kemnaker RI';
+        $metaTitle = trim($__env->yieldContent('title'));
+        $metaTitle = $metaTitle ? $metaTitle . ' | ' . $siteName : $siteName;
+        $metaDescription = trim($__env->yieldContent('meta_description') ?: ($globalSettings['meta_description'] ?? 'Informasi resmi Satpel PVP Bantul, pelatihan vokasi, jadwal kelas, layanan publik, dan kolaborasi industri.'));
+        $metaImage = $globalSettings['meta_image'] ?? asset('image/logo/logo_kemnaker.svg');
+        $canonicalUrl = url()->current();
+    @endphp
+    <title>{{ $metaTitle }}</title>
+    <meta name="description" content="{{ $metaDescription }}">
+    <meta name="keywords" content="{{ $globalSettings['meta_keywords'] ?? 'pelatihan vokasi, bpvp bantul, kemnaker, satpel' }}">
+    <meta property="og:title" content="{{ $metaTitle }}">
+    <meta property="og:description" content="{{ $metaDescription }}">
+    <meta property="og:image" content="{{ $metaImage }}">
+    <meta property="og:url" content="{{ $canonicalUrl }}">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="canonical" href="{{ $canonicalUrl }}">
+    <link rel="icon" type="image/png" href="{{ $globalSettings['favicon'] ?? asset('image/logo/logo_kemnaker.svg') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/theme.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    
-    <style>
-        html, body { height: 100%; }
-        body { font-family: 'Inter', 'Segoe UI', Tahoma, sans-serif; background-color: #f5f7fb; color: #1f2d3d; display: flex; flex-direction: column; }
-        main { flex: 1 0 auto; background:#fff; }
-        .navbar-top { background-color: #0b2b4c; color: white; font-size: 0.85rem; }
-        .main-navbar { background: #fff !important; box-shadow: 0 6px 18px -8px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 1030; }
-        .nav-link { font-weight: 600; color: #1f2d3d; }
-        .nav-link:hover, .nav-link.active { color: #0f7b7b !important; }
-        .btn-primary { background: #1b877a; border-color: #1b877a; }
-        .btn-outline-primary { color: #1b877a; border-color: #1b877a; }
-        .btn-outline-primary:hover { background: #1b877a; color: #fff; }
-        .badge-primary-soft { background: #e7f5f2; color: #1b877a; }
-        .rounded-4 { border-radius: 1rem; }
-        .shadow-soft { box-shadow: 0 12px 30px -12px rgba(0,0,0,0.18); }
-        .hero-shape { position:absolute; top:-60px; right:-80px; width:280px; opacity:0.08; }
-        .marquee-box { background:#f2fbf9; border:1px solid #d9f0ec; }
-        .section-title { font-weight:700; }
-        .card { border-radius: 14px; }
-    </style>
+    @stack('meta')
     @stack('styles')
 
 </head>
@@ -37,8 +38,8 @@
             <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
                 <img src="{{ asset('image/logo/logo_kemnaker.svg') }}" alt="Logo Kemnaker" height="42" class="me-2">
                 <div class="fw-bold text-uppercase lh-sm" style="letter-spacing:0.5px;">
-                    <span class="d-block text-secondary small">Kemnaker RI</span>
-                    <span class="text-primary">Satpel PVP Bantul</span>
+                    <span class="d-block brand-tagline">{{ $siteTagline }}</span>
+                    <span class="brand-name">{{ $siteName }}</span>
                 </div>
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
@@ -101,7 +102,7 @@
         </div>
     </nav>
 
-    <main>
+    <main class="site-main">
         @yield('content')
     </main>
 
@@ -111,7 +112,7 @@
     @php
         $footerSpacingClass = request()->routeIs('sertifikasi') ? '' : 'mt-5';
     @endphp
-    <footer class="{{ $footerSpacingClass }}" style="background:#178c80; color:white;">
+    <footer class="{{ $footerSpacingClass }} site-footer">
         <div class="container py-4">
             <div class="row g-4">
                 <div class="col-md-6">

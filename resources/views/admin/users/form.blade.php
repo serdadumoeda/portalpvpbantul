@@ -31,7 +31,8 @@
 
             <div class="col-md-6">
                 <label class="form-label">Password {{ $method === 'POST' ? '' : '(kosongkan bila tidak diganti)' }}</label>
-                <input type="password" name="password" class="form-control" {{ $method === 'POST' ? 'required' : '' }}>
+                <input type="password" name="password" class="form-control" minlength="8" {{ $method === 'POST' ? 'required' : '' }}>
+                <small class="text-muted">Minimal 8 karakter dengan kombinasi huruf & angka.</small>
                 @error('password')
                     <small class="text-danger">{{ $message }}</small>
                 @enderror

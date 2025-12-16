@@ -6,14 +6,10 @@
             <h2 class="h4 mb-1">Manajemen Pengguna</h2>
             <p class="text-muted mb-0">Kelola akun dan peran pengguna portal.</p>
         </div>
-        <a href="{{ route('admin.users.create') }}" class="btn btn-primary"><i class="fas fa-user-plus me-2"></i>Tambah User</a>
+        @can('create', App\Models\User::class)
+            <a href="{{ route('admin.users.create') }}" class="btn btn-primary"><i class="fas fa-user-plus me-2"></i>Tambah User</a>
+        @endcan
     </div>
-
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @elseif(session('error'))
-        <div class="alert alert-danger">{{ session('error') }}</div>
-    @endif
 
     <div class="table-responsive bg-white rounded shadow-sm">
         <table class="table mb-0">
@@ -40,16 +36,20 @@
                             @endif
                         </td>
                         <td class="text-end">
-                            <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-primary me-2">
-                                <i class="fas fa-edit"></i> Edit
-                            </a>
-                            <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus user ini?')">
-                                @csrf
-                                @method('DELETE')
-                                <button class="btn btn-sm btn-outline-danger">
-                                    <i class="fas fa-trash"></i> Hapus
-                                </button>
-                            </form>
+                            @can('update', $user)
+                                <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-primary me-2">
+                                    <i class="fas fa-edit"></i> Edit
+                                </a>
+                            @endcan
+                            @can('delete', $user)
+                                <form action="{{ route('admin.users.destroy', $user) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus user ini?')">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger">
+                                        <i class="fas fa-trash"></i> Hapus
+                                    </button>
+                                </form>
+                            @endcan
                         </td>
                     </tr>
                 @empty
