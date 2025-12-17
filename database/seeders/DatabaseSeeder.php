@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
             RoleSeeder::class,
             PermissionSeeder::class,
             UserSeeder::class,
+            ForumBadgeSeeder::class,
+            WeeklyChallengeSeeder::class,
             ProgramSeeder::class,
             BeritaSeeder::class,
             ProfileSeeder::class,
@@ -26,6 +28,7 @@ class DatabaseSeeder extends Seeder
             FaqSeeder::class,
             ContactSeeder::class,
             PpidSeeder::class,
+            SurveySeeder::class,
         ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\SiteSetting;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class SiteSettingController extends Controller
 {
@@ -17,6 +18,37 @@ class SiteSettingController extends Controller
     public function update(Request $request)
     {
         $data = $request->validate([
+            // Hero & beranda
+            'home_hero_title' => 'nullable|string',
+            'home_hero_subtitle' => 'nullable|string',
+            'home_hero_image' => 'nullable|string',
+            'home_hero_cta_primary_text' => 'nullable|string',
+            'home_hero_cta_primary_link' => 'nullable|string',
+            'home_hero_cta_secondary_text' => 'nullable|string',
+            'home_hero_cta_secondary_link' => 'nullable|string',
+            'home_benefit_title' => 'nullable|string',
+            'home_benefit_image' => 'nullable|string',
+            'home_program_title' => 'nullable|string',
+            'home_program_subtitle' => 'nullable|string',
+            'home_why_title' => 'nullable|string',
+            'home_why_image' => 'nullable|string',
+            'home_flow_title' => 'nullable|string',
+            'home_flow_image' => 'nullable|string',
+            'home_news_title' => 'nullable|string',
+            'home_news_subtitle' => 'nullable|string',
+            'home_testimonial_title' => 'nullable|string',
+            'home_testimonial_subtitle' => 'nullable|string',
+            'home_partner_title' => 'nullable|string',
+            'home_partner_subtitle' => 'nullable|string',
+            'home_instructor_title' => 'nullable|string',
+            'home_instructor_subtitle' => 'nullable|string',
+            'home_gallery_title' => 'nullable|string',
+            'home_gallery_subtitle' => 'nullable|string',
+            'home_hero_image_upload' => 'nullable|image|max:2048',
+            'home_benefit_image_upload' => 'nullable|image|max:2048',
+            'home_why_image_upload' => 'nullable|image|max:2048',
+            'home_flow_image_upload' => 'nullable|image|max:2048',
+
             'cta_title' => 'nullable|string',
             'cta_subtitle' => 'nullable|string',
             'cta_button_1_text' => 'nullable|string',
@@ -35,6 +67,22 @@ class SiteSettingController extends Controller
             'footer_operasional' => 'nullable|string',
             'footer_embed_map' => 'nullable|string',
         ]);
+
+        // Handle image uploads and override corresponding URL fields
+        $uploadFields = [
+            'home_hero_image_upload' => 'home_hero_image',
+            'home_benefit_image_upload' => 'home_benefit_image',
+            'home_why_image_upload' => 'home_why_image',
+            'home_flow_image_upload' => 'home_flow_image',
+        ];
+
+        foreach ($uploadFields as $uploadKey => $settingKey) {
+            if ($request->hasFile($uploadKey)) {
+                $path = $request->file($uploadKey)->store('site-settings', 'public');
+                $data[$settingKey] = Storage::url($path);
+            }
+            unset($data[$uploadKey]);
+        }
 
         foreach ($data as $key => $value) {
             SiteSetting::updateOrCreate(['key' => $key], ['value' => $value]);

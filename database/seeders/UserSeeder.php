@@ -13,6 +13,7 @@ class UserSeeder extends Seeder
         $superAdminRole = Role::where('name', 'superadmin')->first();
         $adminRole = Role::where('name', 'admin')->first();
         $editorRole = Role::where('name', 'editor')->first();
+        $alumniRole = Role::where('name', 'alumni')->first();
 
         $admin = User::updateOrCreate(
             ['email' => 'admin@bpvp.com'],
@@ -31,5 +32,25 @@ class UserSeeder extends Seeder
             ]
         );
         $editor->syncRoles([$editorRole?->id]);
+
+        $moderatorRole = Role::where('name', 'moderator')->first();
+
+        $moderator = User::updateOrCreate(
+            ['email' => 'moderator@bpvp.com'],
+            [
+                'name' => 'Moderator Forum',
+                'password' => 'moderator123',
+            ]
+        );
+        $moderator->syncRoles([$moderatorRole?->id]);
+
+        $alumni = User::updateOrCreate(
+            ['email' => 'alumni@bpvp.com'],
+            [
+                'name' => 'Alumni Satpel PVP Bantul',
+                'password' => 'alumni2025',
+            ]
+        );
+        $alumni->syncRoles([$alumniRole?->id]);
     }
 }

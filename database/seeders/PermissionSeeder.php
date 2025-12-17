@@ -20,11 +20,15 @@ class PermissionSeeder extends Seeder
             ['name' => 'manage-program', 'label' => 'Kelola Program Pelatihan', 'module' => 'konten'],
             ['name' => 'manage-publication', 'label' => 'Kelola Publikasi', 'module' => 'konten'],
             ['name' => 'manage-gallery', 'label' => 'Kelola Media & Galeri', 'module' => 'konten'],
+            ['name' => 'manage-surveys', 'label' => 'Kelola Survey & Formulir', 'module' => 'survey'],
+            ['name' => 'view-survey-analytics', 'label' => 'Lihat Analitik Survey', 'module' => 'survey'],
             ['name' => 'manage-faq', 'label' => 'Kelola FAQ', 'module' => 'layanan'],
             ['name' => 'manage-public-service', 'label' => 'Kelola Pelayanan Publik', 'module' => 'layanan'],
             ['name' => 'manage-ppid', 'label' => 'Kelola PPID', 'module' => 'layanan'],
             ['name' => 'manage-settings', 'label' => 'Kelola Pengaturan Situs', 'module' => 'system'],
             ['name' => 'access-admin', 'label' => 'Akses Panel Admin', 'module' => 'system'],
+            ['name' => 'access-alumni-forum', 'label' => 'Akses Forum Alumni', 'module' => 'alumni'],
+            ['name' => 'moderate-alumni-forum', 'label' => 'Moderasi Forum Alumni', 'module' => 'alumni'],
         ];
 
         foreach ($permissions as $permission) {
@@ -40,8 +44,10 @@ class PermissionSeeder extends Seeder
                 'manage-publication',
                 'manage-gallery',
                 'manage-faq',
+                'manage-surveys',
             ])->pluck('id')->all(),
             'viewer' => Permission::where('name', 'access-admin')->pluck('id')->all(),
+            'alumni' => Permission::where('name', 'access-alumni-forum')->pluck('id')->all(),
         ];
 
         foreach ($rolePermissions as $roleName => $permissionIds) {

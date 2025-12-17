@@ -6,7 +6,10 @@
         <h3 class="mb-1">Tracer Alumni</h3>
         <p class="text-muted mb-0">Monitor outcome alumni dan insight kebutuhan industri.</p>
     </div>
-    <a href="{{ route('alumni.tracer') }}" target="_blank" class="btn btn-outline-primary">Bagikan Form</a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.alumni-tracer.export') }}" class="btn btn-outline-success btn-sm">Export CSV</a>
+        <a href="{{ route('alumni.tracer') }}" target="_blank" class="btn btn-outline-primary">Bagikan Form</a>
+    </div>
 </div>
 
 <div class="row g-3 mb-4">
@@ -79,9 +82,11 @@
             <thead>
                 <tr>
                     <th>#</th>
+                    <th>Nomor Alumni</th>
                     <th>Nama</th>
                     <th>Program</th>
                     <th>Status</th>
+                    <th>Konfirmasi Data</th>
                     <th>Perusahaan / Usaha</th>
                     <th>Terakhir Update</th>
                     <th>Aksi</th>
@@ -91,12 +96,25 @@
                 @forelse($responses as $item)
                     <tr>
                         <td>{{ $loop->iteration }}</td>
+                        <td>{{ $item->alumni_number }}</td>
                         <td>{{ $item->full_name }}<br><small class="text-muted">{{ $item->phone }}</small></td>
                         <td>{{ $item->program_name ?? optional($item->program)->judul ?? '-' }}</td>
                         <td><span class="badge bg-primary text-uppercase">{{ $item->status }}</span></td>
+                        <td>
+                            <span class="badge {{ $item->is_verified ? 'bg-success' : 'bg-warning text-dark' }}">
+                                {{ $item->is_verified ? 'Terverifikasi' : 'Belum diverifikasi' }}
+                            </span>
+                        </td>
                         <td>{{ $item->company_name ?? $item->business_name ?? '-' }}</td>
                         <td>{{ $item->created_at->translatedFormat('d M Y') }}</td>
-                        <td class="d-flex gap-2">
+                        <td class="d-flex flex-wrap gap-2">
+                            @if(! $item->is_verified)
+                                <form action="{{ route('admin.alumni-tracer.verify', $item) }}" method="POST">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button class="btn btn-sm btn-outline-success">Verifikasi</button>
+                                </form>
+                            @endif
                             <a href="{{ route('admin.alumni-tracer.show', $item) }}" class="btn btn-sm btn-outline-secondary">Detail</a>
                             <form action="{{ route('admin.alumni-tracer.destroy', $item) }}" method="POST" onsubmit="return confirm('Hapus data ini?')">
                                 @csrf @method('DELETE')
@@ -105,7 +123,7 @@
                         </td>
                     </tr>
                 @empty
-                    <tr><td colspan="7" class="text-center text-muted py-4">Belum ada data tracer.</td></tr>
+                    <tr><td colspan="9" class="text-center text-muted py-4">Belum ada data tracer.</td></tr>
                 @endforelse
             </tbody>
         </table>

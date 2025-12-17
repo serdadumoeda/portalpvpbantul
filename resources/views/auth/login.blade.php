@@ -17,6 +17,16 @@
             <p class="text-muted small">Silakan masuk untuk mengelola website</p>
         </div>
 
+        @if(session('status'))
+            <div class="alert alert-success text-center small p-2">
+                {{ session('status') }}
+            </div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger text-center small p-2">
+                {{ session('error') }}
+            </div>
+        @endif
         @if($errors->any())
             <div class="alert alert-danger text-center small p-2">
                 {{ $errors->first() }}
@@ -37,6 +47,8 @@
         </form>
         
         <div class="text-center mt-3">
+            <a href="{{ route('password.request') }}" class="text-decoration-none small me-3">Lupa password?</a>
+            <a href="{{ route('register') }}" class="text-decoration-none small me-3">Belum punya akun?</a>
             <a href="{{ route('home') }}" class="text-decoration-none small">Kembali ke Website Utama</a>
         </div>
     </div>

@@ -15,6 +15,7 @@ class AlumniTracer extends Model
         'email',
         'phone',
         'national_id',
+        'alumni_number',
         'program_id',
         'program_name',
         'graduation_year',
@@ -33,6 +34,9 @@ class AlumniTracer extends Model
         'satisfaction_rating',
         'feedback',
         'platform_origin',
+        'consent_given',
+        'consent_at',
+        'user_id',
         'is_verified',
         'verified_at',
     ];
@@ -40,6 +44,8 @@ class AlumniTracer extends Model
     protected $casts = [
         'continue_study' => 'boolean',
         'is_entrepreneur' => 'boolean',
+        'consent_given' => 'boolean',
+        'consent_at' => 'datetime',
         'is_verified' => 'boolean',
         'job_start_date' => 'date',
         'verified_at' => 'datetime',
@@ -48,5 +54,10 @@ class AlumniTracer extends Model
     public function program(): BelongsTo
     {
         return $this->belongsTo(Program::class);
+    }
+
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 }

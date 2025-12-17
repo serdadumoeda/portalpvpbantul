@@ -67,6 +67,20 @@
             </div>
 
             <div class="col-12">
+                @php
+                    $twoFactorEnabled = old('two_factor_enabled', $user->two_factor_enabled ?? false);
+                @endphp
+                <div class="form-check">
+                    <input type="hidden" name="two_factor_enabled" value="0">
+                    <input class="form-check-input" type="checkbox" name="two_factor_enabled" id="two_factor_enabled" value="1" {{ $twoFactorEnabled ? 'checked' : '' }}>
+                    <label class="form-check-label" for="two_factor_enabled">
+                        Aktifkan otentikasi dua langkah (2FA)
+                    </label>
+                </div>
+                <small class="text-muted d-block">2FA akan mengirim kode ke email saat masuk.</small>
+            </div>
+
+            <div class="col-12">
                 <button type="submit" class="btn btn-primary">{{ $method === 'POST' ? 'Simpan' : 'Perbarui' }}</button>
             </div>
         </form>

@@ -18,6 +18,13 @@
                         <article class="content mb-4" style="line-height:1.7;">
                             {!! $announcement->isi !!}
                         </article>
+                        <div class="alert alert-info border-0 shadow-sm rounded-4 mt-4 d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>Diskusikan pengumuman ini</strong>
+                                <p class="mb-0 small text-muted">Bagikan pertanyaan atau insight alumni terkait layanan ini di forum kami.</p>
+                            </div>
+                            <a href="{{ route('alumni.forum.index') }}" class="btn btn-outline-primary btn-sm">Diskusi Alumni</a>
+                        </div>
                         @if($announcement->file_download)
                             <a href="{{ asset($announcement->file_download) }}" class="btn btn-outline-primary" target="_blank">
                                 <i class="fas fa-paperclip me-1"></i> Unduh Lampiran

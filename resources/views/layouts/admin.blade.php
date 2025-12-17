@@ -129,6 +129,33 @@
             </div>
 
             <div class="menu-group">
+                <button class="menu-group-header" data-target="#group-alumni">
+                    <span>Alumni & Tracer</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="submenu show" id="group-alumni">
+                    <a href="{{ route('admin.alumni.index') }}" class="{{ request()->routeIs('admin.alumni.*') ? 'active' : '' }}">
+                        <i class="fas fa-user-graduate"></i> Data Alumni
+                    </a>
+                    <a href="{{ route('admin.alumni-tracer.index') }}" class="{{ request()->routeIs('admin.alumni-tracer.*') ? 'active' : '' }}">
+                        <i class="fas fa-clipboard-check"></i> Tracer Study
+                    </a>
+                </div>
+            </div>
+
+            <div class="menu-group">
+                <button class="menu-group-header" data-target="#group-survey">
+                    <span>Survey & Feedback</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="submenu show" id="group-survey">
+                    <a href="{{ route('admin.surveys.index') }}" class="{{ request()->routeIs('admin.surveys.*') ? 'active' : '' }}">
+                        <i class="fas fa-clipboard-list"></i> Survey Dinamis
+                    </a>
+                </div>
+            </div>
+
+            <div class="menu-group">
                 <button class="menu-group-header" data-target="#group-ppid">
                     <span>PPID & Infografis</span>
                     <i class="fas fa-chevron-down"></i>
@@ -172,9 +199,6 @@
                             <i class="fas fa-users-cog"></i> Manajemen Pengguna
                         </a>
                     @endif
-                    <a href="{{ route('admin.alumni-tracer.index') }}" class="{{ request()->routeIs('admin.alumni-tracer.*') ? 'active' : '' }}">
-                        <i class="fas fa-user-graduate"></i> Tracer Alumni
-                    </a>
                     @if(auth()->user()?->hasPermission('manage-access'))
                         <a href="{{ route('admin.roles.index') }}" class="{{ request()->routeIs('admin.roles.*') ? 'active' : '' }}">
                             <i class="fas fa-user-shield"></i> Role

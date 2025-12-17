@@ -51,6 +51,12 @@
                     <input type="text" name="national_id" class="form-control" value="{{ old('national_id') }}">
                 </div>
                 <div class="col-md-4">
+                    <label class="form-label">Nomor Alumni / Registrasi *</label>
+                    <input type="text" name="alumni_number" class="form-control @error('alumni_number') is-invalid @enderror" value="{{ old('alumni_number') }}" required>
+                    @error('alumni_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    <div class="small text-muted">Contoh: ALMA-2024-001 (harus unik untuk setiap alumni).</div>
+                </div>
+                <div class="col-md-4">
                     <label class="form-label">Program Pelatihan</label>
                     <select name="program_id" class="form-select">
                         <option value="">Pilih program</option>
@@ -136,6 +142,15 @@
                 <div class="col-12">
                     <label class="form-label">Masukan / Rekomendasi</label>
                     <textarea name="feedback" rows="4" class="form-control">{{ old('feedback') }}</textarea>
+                </div>
+                <div class="col-12">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" name="consent_given" id="consent_given" value="1" {{ old('consent_given') ? 'checked' : '' }} required>
+                        <label class="form-check-label" for="consent_given">
+                            Saya menyetujui data ini digunakan untuk tracer study, evaluasi program, dan kolaborasi industri.
+                        </label>
+                    </div>
+                    @error('consent_given')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
                 </div>
             </div>
             <div class="row g-3 mt-4 align-items-end">

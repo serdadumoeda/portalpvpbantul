@@ -16,7 +16,8 @@
                 \App\Models\Berita::STATUS_PUBLISHED => 'success',
             ];
         @endphp
-        <table class="table table-hover table-bordered">
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered mb-0">
             <thead class="table-light">
                 <tr>
                     <th>No</th>
@@ -69,9 +70,16 @@
                 </tr>
                 @endforeach
             </tbody>
-        </table>
-        
-        {{ $berita->links() }}
+            </table>
+        </div>
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 mt-3">
+            <div class="text-muted small">
+                Menampilkan {{ $berita->firstItem() ?? 0 }} - {{ $berita->lastItem() ?? 0 }} dari {{ $berita->total() }} berita
+            </div>
+            <div>
+                {{ $berita->withQueryString()->links('pagination::bootstrap-5') }}
+            </div>
+        </div>
     </div>
 </div>
 @endsection

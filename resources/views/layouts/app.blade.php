@@ -3,16 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    @php
-        $globalSettings = $footerSettings ?? collect();
-        $siteName = $globalSettings['site_name'] ?? 'Satpel PVP Bantul';
-        $siteTagline = $globalSettings['site_tagline'] ?? 'Kemnaker RI';
-        $metaTitle = trim($__env->yieldContent('title'));
-        $metaTitle = $metaTitle ? $metaTitle . ' | ' . $siteName : $siteName;
-        $metaDescription = trim($__env->yieldContent('meta_description') ?: ($globalSettings['meta_description'] ?? 'Informasi resmi Satpel PVP Bantul, pelatihan vokasi, jadwal kelas, layanan publik, dan kolaborasi industri.'));
-        $metaImage = $globalSettings['meta_image'] ?? asset('image/logo/logo_kemnaker.svg');
-        $canonicalUrl = url()->current();
-    @endphp
+@php
+    $globalSettings = $footerSettings ?? collect();
+    $siteName = $globalSettings['site_name'] ?? 'Satpel PVP Bantul';
+    $siteTagline = $globalSettings['site_tagline'] ?? 'Kemnaker RI';
+    $metaTitle = trim($__env->yieldContent('title'));
+    $metaTitle = $metaTitle ? $metaTitle . ' | ' . $siteName : $siteName;
+    $metaDescription = trim($__env->yieldContent('meta_description') ?: ($globalSettings['meta_description'] ?? 'Informasi resmi Satpel PVP Bantul, pelatihan vokasi, jadwal kelas, layanan publik, dan kolaborasi industri.'));
+    $metaImage = $globalSettings['meta_image'] ?? asset('image/logo/logo_kemnaker.svg');
+    $canonicalUrl = url()->current();
+    $currentUser = auth()->user();
+@endphp
     <title>{{ $metaTitle }}</title>
     <meta name="description" content="{{ $metaDescription }}">
     <meta name="keywords" content="{{ $globalSettings['meta_keywords'] ?? 'pelatihan vokasi, bpvp bantul, kemnaker, satpel' }}">
@@ -26,37 +27,39 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ asset('css/theme.css') }}">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     @stack('meta')
     @stack('styles')
 
 </head>
 <body>
+    <a href="#main-content" class="skip-link">Lewati ke konten utama</a>
 
     <nav class="navbar navbar-expand-lg main-navbar sticky-top">
         <div class="container">
             <a class="navbar-brand d-flex align-items-center" href="{{ route('home') }}">
                 <img src="{{ asset('image/logo/logo_kemnaker.svg') }}" alt="Logo Kemnaker" height="42" class="me-2">
                 <div class="fw-bold text-uppercase lh-sm" style="letter-spacing:0.5px;">
-                    <span class="d-block brand-tagline">{{ $siteTagline }}</span>
                     <span class="brand-name">{{ $siteName }}</span>
+                    <span class="d-block brand-tagline">{{ $globalSettings['partner_name'] ?? 'BPVP Surakarta' }}</span>
+                    <span class="d-block brand-tagline">{{ $siteTagline }}</span>
                 </div>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Buka navigasi utama" aria-expanded="false" aria-controls="navbarNav">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto align-items-lg-center">
-                    <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">Beranda</a></li>
+                    <li class="nav-item"><a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Beranda</a></li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Tentang Kami</a>
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('profil.*') ? 'active' : '' }}" href="#" data-bs-toggle="dropdown">Tentang Kami</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('profil.instansi') }}">Profil Instansi</a></li>
                             <li><a class="dropdown-item" href="{{ route('profil.instruktur') }}">Profil Instruktur</a></li>
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Pelatihan</a>
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('pelatihan.*') ? 'active' : '' }}" href="#" data-bs-toggle="dropdown">Pelatihan</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('pelatihan.katalog') }}">Katalog Pelatihan</a></li>
                             <li><a class="dropdown-item" href="{{ route('pelatihan.jadwal') }}">Jadwal Pelatihan</a></li>
@@ -64,10 +67,15 @@
                             <li><a class="dropdown-item" href="{{ route('pelatihan.produktivitas') }}">Peningkatan Produktivitas</a></li>
                         </ul>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('sertifikasi') }}">Sertifikasi</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('program') }}">Program</a></li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Berita</a>
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('sertifikasi') || request()->routeIs('program*') ? 'active' : '' }}" href="#" data-bs-toggle="dropdown">Layanan Unggulan</a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="{{ route('sertifikasi') }}">Sertifikasi</a></li>
+                            <li><a class="dropdown-item" href="{{ route('program') }}">Program</a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('berita.*') || request()->routeIs('pengumuman.*') ? 'active' : '' }}" href="#" data-bs-toggle="dropdown">Berita</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('berita.terkini') }}">Berita Terkini</a></li>
                             <li><a class="dropdown-item" href="{{ route('berita.lowongan') }}">Lowongan Kerja</a></li>
@@ -75,34 +83,58 @@
                         </ul>
                     </li>
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">Resource</a>
+                        <a class="nav-link dropdown-toggle {{ request()->routeIs('resource.*') || request()->routeIs('ppid') ? 'active' : '' }}" href="#" data-bs-toggle="dropdown">Pustaka</a>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="{{ route('resource.infografis') }}">Infografis Alumni</a></li>
                             <li><a class="dropdown-item" href="{{ route('resource.publikasi') }}">Publikasi</a></li>
                             <li><a class="dropdown-item" href="{{ route('resource.pelayanan') }}">Pelayanan Publik</a></li>
                             <li><a class="dropdown-item" href="{{ route('resource.faq') }}">Frequently Asked Questions (FAQ)</a></li>
                             <li><a class="dropdown-item" href="{{ route('resource.hubungi') }}">Hubungi Kami</a></li>
+                            <li><a class="dropdown-item" href="{{ route('ppid') }}">PPID</a></li>
                         </ul>
                     </li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('ppid') }}">PPID</a></li>
+                    <li class="nav-item"><a class="nav-link {{ request()->routeIs('alumni.forum.*') ? 'active' : '' }}" href="{{ route('alumni.forum.index') }}">Forum Alumni</a></li>
                 </ul>
 
-                <div class="d-flex align-items-center ms-lg-3 my-2 my-lg-0 gap-2 flex-wrap">
-                    <form action="{{ route('search') }}" method="GET" class="d-flex" role="search">
-                        <div class="input-group" style="border:1px solid #6c7a89; border-radius:12px; overflow:hidden;">
-                            <input class="form-control form-control-sm border-0" type="search" name="q" placeholder="Cari info..." aria-label="Search" value="{{ request('q') }}" required>
-                            <button class="btn btn-light border-0 text-secondary" type="submit">
-                                <i class="fas fa-search"></i>
-                            </button>
-                        </div>
+                <div class="d-flex align-items-center ms-lg-3 my-2 my-lg-0 gap-2 flex-nowrap w-100">
+                    <form action="{{ route('search') }}" method="GET" class="input-group flex-fill" role="search" aria-label="Pencarian global" style="border:1px solid #6c7a89; border-radius:12px; overflow:hidden;">
+                        <label for="navbar-search" class="visually-hidden">Cari informasi di situs</label>
+                        <input id="navbar-search" class="form-control form-control-sm border-0" type="search" name="q" placeholder="Cari info..." aria-label="Kolom pencarian global" value="{{ request('q') }}" required>
+                        <button class="btn btn-light border-0 text-secondary" type="submit">
+                            <i class="fas fa-search"></i>
+                        </button>
                     </form>
+                    @auth
+                        <div class="dropdown ms-2">
+                            <button class="btn btn-outline-secondary btn-sm rounded-circle p-2" type="button" id="alumniActions" data-bs-toggle="dropdown" data-bs-auto-close="outside" data-bs-placement="bottom" title="Menu alumni" data-bs-toggle="tooltip">
+                                <i class="fas fa-user-circle fa-lg"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end shadow-sm" aria-labelledby="alumniActions">
+                                @if($currentUser)
+                                    <li class="px-3 py-2">
+                                        <div class="fw-semibold">{{ $currentUser->name }}</div>
+                                        <small class="text-muted">{{ $currentUser->email }}</small>
+                                    </li>
+                                    <li><hr class="my-1"></li>
+                                @endif
+                                <li><a class="dropdown-item" href="{{ route('alumni.profile.complete') }}">Lengkapi Profil Alumni</a></li>
+                                <li><a class="dropdown-item" href="{{ route('alumni.tracer') }}">Tracer Study</a></li>
+                                <li>
+                                    <form action="{{ route('logout') }}" method="POST" class="m-0">
+                                        @csrf
+                                        <button type="submit" class="dropdown-item text-danger">Logout</button>
+                                    </form>
+                                </li>
+                            </ul>
+                        </div>
+                    @endauth
                 </div>
 
             </div>
         </div>
     </nav>
 
-    <main class="site-main">
+    <main class="site-main" id="main-content" tabindex="-1">
         @yield('content')
     </main>
 
@@ -152,5 +184,16 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.querySelectorAll('[data-bs-toggle=\"tooltip\"]').forEach(function (el) {
+            new bootstrap.Tooltip(el);
+        });
+    </script>
+    @stack('scripts')
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('{{ asset('sw-survey.js') }}').catch(() => {});
+        }
+    </script>
 </body>
 </html>

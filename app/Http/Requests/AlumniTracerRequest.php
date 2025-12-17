@@ -18,6 +18,7 @@ class AlumniTracerRequest extends FormRequest
             'email' => 'nullable|email|max:255',
             'phone' => 'nullable|string|max:30',
             'national_id' => 'nullable|string|max:32',
+            'alumni_number' => 'required|string|max:40|unique:alumni_tracers,alumni_number',
             'program_id' => 'nullable|exists:programs,id',
             'program_name' => 'nullable|string|max:255',
             'graduation_year' => 'nullable|integer|min:2000|max:' . (now()->year + 1),
@@ -35,6 +36,14 @@ class AlumniTracerRequest extends FormRequest
             'business_sector' => 'nullable|string|max:255',
             'satisfaction_rating' => 'nullable|integer|min:1|max:5',
             'feedback' => 'nullable|string|max:2000',
+            'consent_given' => 'accepted',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'alumni_number.unique' => 'Nomor alumni ini sudah tercatat, silakan hubungi admin jika perlu koreksi.',
         ];
     }
 }

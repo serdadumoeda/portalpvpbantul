@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\RegistrationController;
 use App\Http\Controllers\Admin\BeritaController;
 use App\Http\Controllers\Admin\GaleriController;
 use App\Http\Controllers\Admin\OrgStructureController;
@@ -10,6 +11,7 @@ use App\Http\Controllers\Admin\PengumumanController;
 use App\Http\Controllers\Admin\PesanController;
 use App\Http\Controllers\Admin\ProgramController;
 use App\Http\Controllers\Admin\PartnerController;
+use App\Http\Controllers\Admin\AlumniController;
 use App\Http\Controllers\Admin\InstructorController;
 use App\Http\Controllers\Admin\BenefitController;
 use App\Http\Controllers\Admin\FlowStepController;
@@ -47,6 +49,14 @@ use App\Http\Controllers\Admin\ActivityLogController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\BrandingKpiController;
 use App\Http\Controllers\Admin\AlumniTracerController;
+use App\Http\Controllers\Admin\AlumniForumModerationController;
+use App\Http\Controllers\Admin\WeeklyChallengeController;
+use App\Http\Controllers\Admin\InvitationController;
+use App\Http\Controllers\AlumniForumController;
+use App\Http\Controllers\ForumReactionController;
+use App\Http\Controllers\InvitationAcceptanceController;
+use App\Http\Controllers\Admin\SurveyController as AdminSurveyController;
+use App\Http\Controllers\SurveyResponseController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -56,6 +66,25 @@ Route::get('/program', [HomeController::class, 'katalogPelatihan'])->name('progr
 Route::get('/kontak', [HomeController::class, 'kontak'])->name('kontak');
 Route::get('/alumni/tracer', [HomeController::class, 'alumniTracerForm'])->name('alumni.tracer');
 Route::post('/alumni/tracer', [HomeController::class, 'storeAlumniTracer'])->name('alumni.tracer.store');
+Route::get('/alumni/profil', [HomeController::class, 'alumniProfileForm'])->name('alumni.profile.complete');
+Route::post('/alumni/profil', [HomeController::class, 'storeAlumniProfile'])->name('alumni.profile.store');
+
+Route::middleware(['auth', 'permission:access-alumni-forum'])->group(function () {
+    Route::get('/alumni/forum', [AlumniForumController::class, 'index'])->name('alumni.forum.index');
+    Route::post('/alumni/forum', [AlumniForumController::class, 'storeTopic'])
+        ->name('alumni.forum.store')
+        ->middleware('throttle:4,1');
+    Route::get('/alumni/forum/{topic}', [AlumniForumController::class, 'show'])->name('alumni.forum.show');
+    Route::post('/alumni/forum/{topic}/posts', [AlumniForumController::class, 'storePost'])
+        ->name('alumni.forum.posts.store')
+        ->middleware('throttle:8,1');
+    Route::post('/alumni/forum/{topic}/react', [ForumReactionController::class, 'reactTopic'])
+        ->name('alumni.forum.react')
+        ->middleware('throttle:10,1');
+    Route::post('/alumni/forum/post/{post}/react', [ForumReactionController::class, 'reactPost'])
+        ->name('alumni.forum.post.react')
+        ->middleware('throttle:10,1');
+});
 
 Route::get('/pengumuman', [HomeController::class, 'pengumumanIndex'])->name('pengumuman.index');
 Route::get('/pengumuman/{slug}', [HomeController::class, 'pengumumanShow'])->name('pengumuman.show');
@@ -84,7 +113,19 @@ Route::get('/profil/instruktur', [HomeController::class, 'profilInstruktur'])->n
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/register', [RegistrationController::class, 'show'])->name('register')->middleware('guest');
+Route::post('/register', [RegistrationController::class, 'register'])->name('register.post')->middleware('guest');
+Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request')->middleware('guest');
+Route::post('/forgot-password', [AuthController::class, 'sendResetLink'])->name('password.email')->middleware('guest');
+Route::get('/reset-password/{token}', [AuthController::class, 'showResetForm'])->name('password.reset')->middleware('guest');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('password.update')->middleware('guest');
+Route::get('/two-factor', [AuthController::class, 'showTwoFactorForm'])->name('two-factor')->middleware('guest');
+Route::post('/two-factor', [AuthController::class, 'verifyTwoFactor'])->name('two-factor.verify')->middleware('guest');
+Route::post('/two-factor/resend', [AuthController::class, 'resendTwoFactorCode'])->name('two-factor.resend')->middleware('guest');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::get('/invite/{token}', [InvitationAcceptanceController::class, 'show'])->name('invite.show')->middleware('guest');
+Route::post('/invite/{token}', [InvitationAcceptanceController::class, 'accept'])->name('invite.accept')->middleware('guest');
 
 
 
@@ -100,12 +141,15 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::resource('pengumuman', PengumumanController::class);
     Route::resource('struktur', OrgStructureController::class)->except(['show']);
     Route::get('pesan', [PesanController::class, 'index'])->name('pesan.index');
+    Route::patch('pesan/{pesan}/status', [PesanController::class, 'updateStatus'])->name('pesan.status');
     Route::resource('partner', PartnerController::class)->except(['show']);
     Route::resource('instructor', InstructorController::class)->except(['show']);
     Route::resource('benefit', BenefitController::class)->except(['show']);
     Route::resource('flow', FlowStepController::class)->except(['show']);
-    Route::resource('alumni-tracer', AlumniTracerController::class)->only(['index','show','destroy']);
-    Route::patch('alumni-tracer/{alumni_tracer}/verify', [AlumniTracerController::class, 'verify'])->name('alumni-tracer.verify');
+    Route::resource('alumni-tracer', AlumniTracerController::class)->only(['index','show','destroy'])->middleware('permission:manage-users');
+    Route::get('alumni-tracer/export', [AlumniTracerController::class, 'export'])->name('alumni-tracer.export')->middleware(['permission:manage-users']);
+    Route::resource('alumni', AlumniController::class)->except(['show']);
+    Route::patch('alumni-tracer/{alumni_tracer}/verify', [AlumniTracerController::class, 'verify'])->name('alumni-tracer.verify')->middleware('permission:manage-users');
     Route::resource('testimonial', TestimonialController::class)->except(['show']);
     Route::resource('training-service', TrainingServiceController::class)->except(['show']);
     Route::resource('training-schedule', TrainingScheduleController::class)->except(['show']);
@@ -128,6 +172,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::get('contact/settings', [ContactSettingController::class, 'edit'])->name('contact.settings');
     Route::put('contact/settings', [ContactSettingController::class, 'update'])->name('contact.settings.update');
     Route::resource('contact-channel', ContactChannelController::class)->except(['show']);
+    Route::get('surveys/{survey}/analytics', [AdminSurveyController::class, 'analytics'])->name('surveys.analytics');
+    Route::get('surveys/{survey}/export', [AdminSurveyController::class, 'export'])->name('surveys.export');
+    Route::get('surveys/{survey}/export-xlsx', [AdminSurveyController::class, 'exportXlsx'])->name('surveys.export-xlsx');
+    Route::post('surveys/{survey}/duplicate', [AdminSurveyController::class, 'duplicate'])->name('surveys.duplicate');
+    Route::post('surveys/{survey}/versions/{version}/restore', [AdminSurveyController::class, 'restoreVersion'])->name('surveys.restore');
+    Route::post('surveys/{survey}/collaborators', [AdminSurveyController::class, 'addCollaborator'])->name('surveys.collaborators.add');
+    Route::delete('surveys/{survey}/collaborators/{collaborator}', [AdminSurveyController::class, 'removeCollaborator'])->name('surveys.collaborators.remove');
+    Route::resource('surveys', AdminSurveyController::class)->except(['show']);
     Route::get('ppid/settings', [PpidSettingController::class, 'edit'])->name('ppid.settings');
     Route::put('ppid/settings', [PpidSettingController::class, 'update'])->name('ppid.settings.update');
     Route::resource('ppid-highlight', PpidHighlightController::class)->except(['show']);
@@ -140,6 +192,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::get('settings/site', [SiteSettingController::class, 'edit'])->name('settings.site');
     Route::put('settings/site', [SiteSettingController::class, 'update'])->name('settings.site.update');
     Route::resource('users', UserController::class)->except(['show'])->middleware('permission:manage-users');
+    Route::resource('invitations', InvitationController::class)->only(['index', 'create', 'store', 'destroy'])->middleware('permission:manage-users');
     Route::resource('roles', RoleController::class)->except(['show'])->middleware('permission:manage-access');
     Route::resource('permissions', PermissionController::class)->except(['show'])->middleware('permission:manage-access');
     Route::get('activity-logs', [ActivityLogController::class, 'index'])->name('activity-logs.index')->middleware('permission:manage-audit');
@@ -147,6 +200,20 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::delete('activity-logs', [ActivityLogController::class, 'clear'])->name('activity-logs.clear')->middleware('permission:manage-audit');
     Route::get('branding-kpi/{branding_kpi}/download', [BrandingKpiController::class, 'download'])->name('branding-kpi.download');
     Route::resource('branding-kpi', BrandingKpiController::class);
+
+    Route::middleware('permission:moderate-alumni-forum')->group(function () {
+        Route::get('alumni-forum/moderation', [AlumniForumModerationController::class, 'index'])->name('alumni-forum.moderation');
+        Route::patch('alumni-forum/topic/{forum_topic}/approve', [AlumniForumModerationController::class, 'approveTopic'])->name('alumni-forum.topic.approve');
+        Route::delete('alumni-forum/topic/{forum_topic}/reject', [AlumniForumModerationController::class, 'rejectTopic'])->name('alumni-forum.topic.reject');
+        Route::patch('alumni-forum/post/{forum_post}/approve', [AlumniForumModerationController::class, 'approvePost'])->name('alumni-forum.post.approve');
+        Route::delete('alumni-forum/post/{forum_post}/reject', [AlumniForumModerationController::class, 'rejectPost'])->name('alumni-forum.post.reject');
+        Route::get('alumni-forum/challenges', [WeeklyChallengeController::class, 'index'])->name('alumni-forum.challenge.index');
+        Route::get('alumni-forum/challenges/create', [WeeklyChallengeController::class, 'create'])->name('alumni-forum.challenge.create');
+        Route::post('alumni-forum/challenges', [WeeklyChallengeController::class, 'store'])->name('alumni-forum.challenge.store');
+        Route::get('alumni-forum/challenges/{weekly_challenge}/edit', [WeeklyChallengeController::class, 'edit'])->name('alumni-forum.challenge.edit');
+        Route::put('alumni-forum/challenges/{weekly_challenge}', [WeeklyChallengeController::class, 'update'])->name('alumni-forum.challenge.update');
+        Route::delete('alumni-forum/challenges/{weekly_challenge}', [WeeklyChallengeController::class, 'destroy'])->name('alumni-forum.challenge.destroy');
+    });
 });
 
 Route::get('/profil/sejarah', [HomeController::class, 'sejarah'])->name('profil.sejarah');
@@ -162,4 +229,12 @@ Route::get('/pelatihan/produktivitas', [HomeController::class, 'produktivitas'])
 Route::get('/sertifikasi', [HomeController::class, 'sertifikasi'])->name('sertifikasi');
 Route::get('/ppid', [HomeController::class, 'ppid'])->name('ppid');
 Route::post('/ppid/permohonan', [HomeController::class, 'storePpidRequest'])->name('ppid.store');
+Route::get('/survei/{survey:slug}', [SurveyResponseController::class, 'show'])->name('surveys.show');
+Route::post('/survei/{survey:slug}', [SurveyResponseController::class, 'store'])
+    ->name('surveys.submit')
+    ->middleware('throttle:5,1');
+Route::post('/survei/{survey:slug}/draft', [SurveyResponseController::class, 'saveDraft'])
+    ->name('surveys.draft')
+    ->middleware('throttle:20,1');
+Route::get('/survei/embed/{token}', [SurveyResponseController::class, 'embed'])->name('surveys.embed');
 // Profile admin routes now under admin prefix

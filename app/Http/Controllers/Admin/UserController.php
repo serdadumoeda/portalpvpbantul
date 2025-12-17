@@ -44,6 +44,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email'],
             'password' => ['required', 'string', 'min:8', 'confirmed'],
+            'two_factor_enabled' => ['nullable', 'boolean'],
             'roles' => ['required', 'array'],
             'roles.*' => ['exists:roles,id'],
         ]);
@@ -52,6 +53,7 @@ class UserController extends Controller
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => $data['password'],
+            'two_factor_enabled' => !empty($data['two_factor_enabled']),
         ]);
 
         $user->syncRoles($data['roles']);
@@ -88,6 +90,7 @@ class UserController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
             'password' => ['nullable', 'string', 'min:8', 'confirmed'],
+            'two_factor_enabled' => ['nullable', 'boolean'],
             'roles' => ['required', 'array'],
             'roles.*' => ['exists:roles,id'],
         ]);
@@ -95,6 +98,7 @@ class UserController extends Controller
         $user->fill([
             'name' => $data['name'],
             'email' => $data['email'],
+            'two_factor_enabled' => !empty($data['two_factor_enabled']),
         ]);
 
         if (!empty($data['password'])) {

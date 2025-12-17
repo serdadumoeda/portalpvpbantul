@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="row g-4 mb-4">
+<div class="row g-3 mb-4 dashboard-metrics">
     @php
         $metricCards = [
             ['label' => 'Total Berita', 'value' => $metrics['berita'], 'icon' => 'fa-newspaper', 'theme' => 'primary'],
@@ -13,21 +13,19 @@
         ];
     @endphp
     @foreach($metricCards as $card)
-        <div class="col-xl-2 col-md-4 col-sm-6">
-            <div class="card shadow-sm border-0 h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted mb-1 small">{{ $card['label'] }}</p>
-                            <h4 class="fw-bold mb-0">{{ $card['value'] }}</h4>
-                            @isset($card['subtext'])
-                                <small class="text-muted">{{ $card['subtext'] }}</small>
-                            @endisset
-                        </div>
-                        <span class="badge bg-{{ $card['theme'] }}-subtle text-{{ $card['theme'] }} p-3 rounded-circle">
-                            <i class="fas {{ $card['icon'] }}"></i>
-                        </span>
+        <div class="col">
+            <div class="card border-0 h-100 dashboard-card">
+                <div class="card-body d-flex justify-content-between align-items-start">
+                    <div>
+                        <p class="text-muted mb-1 small">{{ $card['label'] }}</p>
+                        <h4 class="fw-bold mb-0">{{ $card['value'] }}</h4>
+                        @isset($card['subtext'])
+                            <small class="text-muted d-block">{{ $card['subtext'] }}</small>
+                        @endisset
                     </div>
+                    <span class="badge bg-{{ $card['theme'] }}-subtle text-{{ $card['theme'] }} p-3 rounded-circle">
+                        <i class="fas {{ $card['icon'] }}"></i>
+                    </span>
                 </div>
             </div>
         </div>

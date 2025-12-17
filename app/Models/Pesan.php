@@ -15,5 +15,6 @@ class Pesan extends Model
         'email',
         'subjek',
         'pesan',
+        'is_read',
     ];
 }
