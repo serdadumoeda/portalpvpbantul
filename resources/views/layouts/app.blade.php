@@ -134,6 +134,23 @@
         </div>
     </nav>
 
+    @if(session('impersonator_id'))
+        <div class="alert alert-warning mb-0 rounded-0">
+            <div class="container d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    Mode impersonasi aktif: Anda sedang masuk sebagai <strong>{{ auth()->user()->name ?? 'pengguna lain' }}</strong>.
+                    <span class="text-muted">Akun asli: {{ session('impersonator_name') }}.</span>
+                </div>
+                <form action="{{ route('impersonate.stop') }}" method="POST" class="m-0">
+                    @csrf
+                    <button class="btn btn-sm btn-outline-dark">
+                        <i class="fas fa-rotate-left"></i> Kembali ke akun asli
+                    </button>
+                </form>
+            </div>
+        </div>
+    @endif
+
     <main class="site-main" id="main-content" tabindex="-1">
         @yield('content')
     </main>

@@ -6,13 +6,31 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Berita;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
+use App\Services\ActivityLogger;
 
 class BeritaController extends Controller
 {
-    public function index()
+    public function __construct(private ActivityLogger $logger)
     {
-        $berita = Berita::latest()->paginate(10);
-        return view('admin.berita.index', compact('berita'));
+    }
+
+    public function index(Request $request)
+    {
+        $statusOptions = Berita::statuses();
+        $statusFilter = $request->input('status');
+
+        $query = Berita::latest();
+        if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
+            $query->where('status', $statusFilter);
+        }
+
+        $berita = $query->paginate(10)->withQueryString();
+        return view('admin.berita.index', [
+            'berita' => $berita,
+            'statusOptions' => $statusOptions,
+            'statusFilter' => $statusFilter,
+        ]);
     }
 
     public function create()
@@ -32,7 +50,15 @@ class BeritaController extends Controller
         $this->applyWorkflow($request, $data);
         $this->prepareSeo($request, $data);
 
-        Berita::create($data);
+        $berita = Berita::create($data);
+
+        $this->logger->log(
+            $request->user(),
+            'berita.created',
+            "Berita '{$berita->judul}' ditambahkan",
+            $berita,
+            ['status' => $berita->status]
+        );
 
         return redirect()->route('admin.berita.index')->with('success', 'Berita berhasil ditambahkan!');
     }
@@ -40,6 +66,16 @@ class BeritaController extends Controller
     public function destroy($id)
     {
         $berita = Berita::findOrFail($id);
+        if ($berita->gambar_utama) {
+            $storedPath = str_replace('/storage/', '', $berita->gambar_utama);
+            Storage::disk('public')->delete($storedPath);
+        }
+        $this->logger->log(
+            request()->user(),
+            'berita.deleted',
+            "Berita '{$berita->judul}' dihapus",
+            $berita
+        );
         $berita->delete();
         return redirect()->route('admin.berita.index')->with('success', 'Berita berhasil dihapus.');
     }
@@ -56,6 +92,10 @@ class BeritaController extends Controller
         $data = $this->validatePayload($request, false);
 
         if ($request->hasFile('gambar_utama')) {
+            if ($berita->gambar_utama) {
+                $storedPath = str_replace('/storage/', '', $berita->gambar_utama);
+                Storage::disk('public')->delete($storedPath);
+            }
             $path = $request->file('gambar_utama')->store('berita', 'public');
             $data['gambar_utama'] = '/storage/' . $path;
         }
@@ -65,6 +105,14 @@ class BeritaController extends Controller
         $this->prepareSeo($request, $data);
 
         $berita->update($data);
+
+        $this->logger->log(
+            $request->user(),
+            'berita.updated',
+            "Berita '{$berita->judul}' diperbarui",
+            $berita,
+            ['status' => $berita->status]
+        );
 
         return redirect()->route('admin.berita.index')->with('success', 'Berita berhasil diperbarui!');
     }
@@ -76,6 +124,14 @@ class BeritaController extends Controller
             'approved_by' => null,
             'approved_at' => null,
         ]);
+
+        $this->logger->log(
+            $request->user(),
+            'berita.submitted',
+            "Berita '{$berita->judul}' diajukan",
+            $berita,
+            ['status' => $berita->status]
+        );
 
         return back()->with('success', 'Berita diajukan untuk persetujuan.');
     }
@@ -90,6 +146,14 @@ class BeritaController extends Controller
             'approved_at' => now(),
             'published_at' => $berita->published_at ?? now(),
         ]);
+
+        $this->logger->log(
+            $request->user(),
+            'berita.approved',
+            "Berita '{$berita->judul}' disetujui",
+            $berita,
+            ['status' => $berita->status]
+        );
 
         return back()->with('success', 'Berita telah disetujui dan dipublikasikan.');
     }

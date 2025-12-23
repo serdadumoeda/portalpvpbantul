@@ -5,9 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\PpidSetting;
 use Illuminate\Http\Request;
+use App\Services\ActivityLogger;
 
 class PpidSettingController extends Controller
 {
+    public function __construct(private ActivityLogger $logger)
+    {
+    }
+
     public function edit()
     {
         $setting = PpidSetting::first() ?? new PpidSetting();
@@ -22,7 +27,7 @@ class PpidSettingController extends Controller
             'hero_description' => 'nullable|string',
             'hero_button_text' => 'nullable|string|max:120',
             'hero_button_link' => 'nullable|string|max:255',
-            'hero_image' => 'nullable|image|max:2048',
+            'hero_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
             'profile_title' => 'nullable|string|max:255',
             'profile_description' => 'nullable|string',
             'form_title' => 'nullable|string|max:255',
@@ -37,6 +42,13 @@ class PpidSettingController extends Controller
         }
 
         $setting->fill($data)->save();
+
+        $this->logger->log(
+            $request->user(),
+            'ppid_setting.updated',
+            'Pengaturan PPID diperbarui',
+            $setting
+        );
 
         return redirect()->route('admin.ppid.settings')->with('success', 'Pengaturan PPID diperbarui.');
     }

@@ -1,5 +1,9 @@
 @extends('layouts.admin')
 
+@php
+    $statusOptions = \App\Models\Testimonial::statuses();
+@endphp
+
 @section('content')
 <div class="card shadow-sm border-0 col-lg-8">
     <div class="card-header bg-white">
@@ -88,11 +92,23 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-                <div class="col-md-6 d-flex align-items-center">
-                    <div class="form-check form-switch mt-3">
-                        <input class="form-check-input" type="checkbox" role="switch" name="is_active" value="1" {{ old('is_active', $testimonial->is_active ?? true) ? 'checked' : '' }}>
-                        <label class="form-check-label">Aktif</label>
-                    </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Status</label>
+                    <select name="status" class="form-select @error('status') is-invalid @enderror">
+                        @foreach($statusOptions as $key => $label)
+                            <option value="{{ $key }}" @selected(old('status', $testimonial->status ?? 'draft') === $key)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    <small class="text-muted">Draft/Pending untuk menunggu review; Reviewer/Admin dapat langsung publikasikan.</small>
+                    @error('status')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+            <div class="mt-3">
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" name="is_active" value="1" {{ old('is_active', $testimonial->is_active ?? true) ? 'checked' : '' }}>
+                    <label class="form-check-label">Aktif</label>
                 </div>
             </div>
             <button type="submit" class="btn btn-success mt-3">Simpan</button>

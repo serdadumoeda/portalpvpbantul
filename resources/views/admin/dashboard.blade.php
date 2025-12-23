@@ -1,7 +1,7 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="row g-3 mb-4 dashboard-metrics">
+<div class="row g-3 mb-4 dashboard-metrics row-cols-1 row-cols-md-2 row-cols-xl-3">
     @php
         $metricCards = [
             ['label' => 'Total Berita', 'value' => $metrics['berita'], 'icon' => 'fa-newspaper', 'theme' => 'primary'],

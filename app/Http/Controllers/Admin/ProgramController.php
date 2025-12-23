@@ -6,17 +6,35 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Program; // Import Model Program
 use Illuminate\Support\Facades\Storage; // Import Storage untuk hapus gambar
+use App\Services\ActivityLogger;
 
 class ProgramController extends Controller
 {
+    public function __construct(private ActivityLogger $logger)
+    {
+    }
+
     /**
      * Menampilkan daftar semua program pelatihan.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $statusOptions = Program::statuses();
+        $query = Program::query()->latest();
+
+        $statusFilter = $request->input('status');
+        if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
+            $query->where('status', $statusFilter);
+        }
+
         // Mengambil data terbaru dengan pagination (10 per halaman)
-        $programs = Program::latest()->paginate(10);
-        return view('admin.program.index', compact('programs'));
+        $programs = $query->paginate(10)->withQueryString();
+
+        return view('admin.program.index', [
+            'programs' => $programs,
+            'statusOptions' => $statusOptions,
+            'statusFilter' => $statusFilter,
+        ]);
     }
 
     /**
@@ -40,6 +58,7 @@ class ProgramController extends Controller
             'fasilitas_keunggulan' => 'nullable|string|max:2000',
             'info_tambahan' => 'nullable|string|max:2000',
             'gambar'    => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Wajib ada gambar, maks 2MB
+            'status'    => 'nullable|in:' . implode(',', array_keys(Program::statuses())),
         ]);
 
         // 2. Upload Gambar
@@ -51,14 +70,26 @@ class ProgramController extends Controller
         }
 
         // 3. Simpan ke Database
-        Program::create([
-            'judul'     => $request->judul,
-            'deskripsi' => $request->deskripsi,
-            'kode_unit_kompetensi' => $request->kode_unit_kompetensi,
-            'fasilitas_keunggulan' => $request->fasilitas_keunggulan,
-            'info_tambahan' => $request->info_tambahan,
-            'gambar'    => $imagePath
-        ]);
+        $data = [
+            'judul'     => $this->sanitizePlain($request->judul),
+            'deskripsi' => $this->sanitizeRich($request->deskripsi),
+            'kode_unit_kompetensi' => $this->sanitizeRich($request->kode_unit_kompetensi),
+            'fasilitas_keunggulan' => $this->sanitizeRich($request->fasilitas_keunggulan),
+            'info_tambahan' => $this->sanitizeRich($request->info_tambahan),
+            'gambar'    => $imagePath,
+            'status'    => $request->input('status'),
+        ];
+
+        $this->applyWorkflow($request, $data);
+
+        $program = Program::create($data);
+
+        $this->logger->log(
+            $request->user(),
+            'program.created',
+            "Program '{$request->judul}' ditambahkan",
+            $program
+        );
 
         // 4. Redirect kembali dengan pesan sukses
         return redirect()->route('admin.program.index')->with('success', 'Program pelatihan berhasil ditambahkan!');
@@ -91,11 +122,12 @@ class ProgramController extends Controller
         // Ambil data program lama
         $program = Program::findOrFail($id);
         $dataToUpdate = [
-            'judul'     => $request->judul,
-            'deskripsi' => $request->deskripsi,
-            'kode_unit_kompetensi' => $request->kode_unit_kompetensi,
-            'fasilitas_keunggulan' => $request->fasilitas_keunggulan,
-            'info_tambahan' => $request->info_tambahan,
+            'judul'     => $this->sanitizePlain($request->judul),
+            'deskripsi' => $this->sanitizeRich($request->deskripsi),
+            'kode_unit_kompetensi' => $this->sanitizeRich($request->kode_unit_kompetensi),
+            'fasilitas_keunggulan' => $this->sanitizeRich($request->fasilitas_keunggulan),
+            'info_tambahan' => $this->sanitizeRich($request->info_tambahan),
+            'status'    => $request->input('status', $program->status),
         ];
 
         // 2. Cek apakah user mengupload gambar baru
@@ -116,7 +148,16 @@ class ProgramController extends Controller
         }
 
         // 3. Update Database
+        $this->applyWorkflow($request, $dataToUpdate, $program);
+
         $program->update($dataToUpdate);
+
+        $this->logger->log(
+            $request->user(),
+            'program.updated',
+            "Program '{$program->judul}' diperbarui",
+            $program
+        );
 
         return redirect()->route('admin.program.index')->with('success', 'Program pelatihan berhasil diperbarui!');
     }
@@ -139,6 +180,49 @@ class ProgramController extends Controller
         // Hapus data dari tabel database
         $program->delete();
 
+        $this->logger->log(
+            request()->user(),
+            'program.deleted',
+            "Program '{$program->judul}' dihapus",
+            $program
+        );
+
         return redirect()->route('admin.program.index')->with('success', 'Program pelatihan berhasil dihapus.');
+    }
+
+    private function sanitizeRich(?string $text): ?string
+    {
+        if ($text === null) {
+            return null;
+        }
+
+        return strip_tags($text, '<p><br><strong><em><ul><ol><li><a>');
+    }
+
+    private function sanitizePlain(?string $text): ?string
+    {
+        return $text !== null ? strip_tags($text) : null;
+    }
+
+    private function applyWorkflow(Request $request, array &$data, ?Program $program = null): void
+    {
+        $defaultStatus = $request->user()->hasPermission('approve-content') ? 'published' : 'draft';
+        $currentStatus = $program ? $program->status : $defaultStatus;
+        $requestedStatus = $data['status'] ?? $currentStatus;
+
+        if (! $request->user()->hasPermission('approve-content')) {
+            $requestedStatus = $requestedStatus === 'published' ? 'pending' : $requestedStatus;
+        }
+
+        $data['status'] = $requestedStatus ?: $currentStatus;
+
+        if ($data['status'] === 'published') {
+            $data['approved_by'] = $request->user()->id;
+            $data['approved_at'] = now();
+            $data['published_at'] = $program?->published_at ?? now();
+        } else {
+            $data['approved_by'] = null;
+            $data['approved_at'] = null;
+        }
     }
 }

@@ -106,6 +106,14 @@
                     </div>
                 </div>
             </div>
+            <div class="col-md-6 mt-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    @foreach(\App\Models\JobVacancy::statuses() as $key => $label)
+                        <option value="{{ $key }}" @selected(old('status', $vacancy->status ?? null) === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="mt-4">
                 <button class="btn btn-primary">Simpan</button>
             </div>

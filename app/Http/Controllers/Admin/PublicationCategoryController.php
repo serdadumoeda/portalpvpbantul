@@ -6,9 +6,14 @@ use App\Http\Controllers\Controller;
 use App\Models\PublicationCategory;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use App\Services\ActivityLogger;
 
 class PublicationCategoryController extends Controller
 {
+    public function __construct(private ActivityLogger $logger)
+    {
+    }
+
     public function index()
     {
         $categories = PublicationCategory::orderBy('urutan')->get();
@@ -27,7 +32,14 @@ class PublicationCategoryController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateData($request);
-        PublicationCategory::create($data);
+        $category = PublicationCategory::create($data);
+
+        $this->logger->log(
+            $request->user(),
+            'publication_category.created',
+            "Kategori publikasi '{$category->name}' ditambahkan",
+            $category
+        );
         return redirect()->route('admin.publication-category.index')->with('success', 'Kategori publikasi ditambahkan.');
     }
 
@@ -44,11 +56,24 @@ class PublicationCategoryController extends Controller
     {
         $data = $this->validateData($request, $publication_category->id);
         $publication_category->update($data);
+
+        $this->logger->log(
+            $request->user(),
+            'publication_category.updated',
+            "Kategori publikasi '{$publication_category->name}' diperbarui",
+            $publication_category
+        );
         return redirect()->route('admin.publication-category.index')->with('success', 'Kategori diperbarui.');
     }
 
     public function destroy(PublicationCategory $publication_category)
     {
+        $this->logger->log(
+            request()->user(),
+            'publication_category.deleted',
+            "Kategori publikasi '{$publication_category->name}' dihapus",
+            $publication_category
+        );
         $publication_category->delete();
         return redirect()->route('admin.publication-category.index')->with('success', 'Kategori dihapus.');
     }

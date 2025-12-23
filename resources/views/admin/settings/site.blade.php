@@ -13,6 +13,11 @@
         <form action="{{ route('admin.settings.site.update') }}" method="POST" enctype="multipart/form-data" class="vstack gap-4">
             @csrf
             @method('PUT')
+            <div class="alert alert-info py-2 px-3 d-flex align-items-center gap-2 mb-0">
+                <i class="fa-solid fa-circle-info text-primary"></i>
+                <div class="small mb-0">Batas unggah gambar: maks 2MB per file (JPG/PNG/WebP). Gunakan kompresi bila ukuran lebih besar.</div>
+            </div>
+            <div class="alert alert-warning d-none mt-2 py-2 px-3 small" id="uploadSizeAlert"></div>
 
             <div class="border rounded-3 p-3 p-md-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
@@ -308,4 +313,33 @@
         </form>
     </div>
 </div>
+@push('scripts')
+<script>
+    (function () {
+        const MAX_BYTES = 2 * 1024 * 1024;
+        const form = document.querySelector('form[enctype="multipart/form-data"]');
+        if (!form) return;
+
+        const showAlert = (message) => {
+            const alertBox = document.getElementById('uploadSizeAlert');
+            if (!alertBox) return alert(message);
+            alertBox.textContent = message;
+            alertBox.classList.remove('d-none');
+            alertBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setTimeout(() => alertBox.classList.add('d-none'), 5000);
+        };
+
+        form.addEventListener('change', (e) => {
+            const input = e.target;
+            if (input.type !== 'file' || !input.files?.length) return;
+
+            const oversized = Array.from(input.files).find((file) => file.size > MAX_BYTES);
+            if (!oversized) return;
+
+            showAlert(`Ukuran file melebihi 2MB: ${oversized.name}`);
+            input.value = '';
+        });
+    })();
+</script>
+@endpush
 @endsection

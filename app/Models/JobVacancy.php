@@ -21,10 +21,25 @@ class JobVacancy extends Model
         'link_pendaftaran',
         'gambar',
         'is_active',
+        'status',
+        'approved_by',
+        'approved_at',
+        'published_at',
     ];
 
     protected $casts = [
         'deadline' => 'date',
         'is_active' => 'boolean',
+        'approved_at' => 'datetime',
+        'published_at' => 'datetime',
     ];
+
+    public static function statuses(): array
+    {
+        return [
+            'draft' => 'Draft',
+            'pending' => 'Menunggu Review',
+            'published' => 'Terpublikasi',
+        ];
+    }
 }

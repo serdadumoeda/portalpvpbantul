@@ -2,6 +2,7 @@
 
 @php
     $isEdit = $flow->exists;
+    $statusOptions = \App\Models\PublicServiceFlow::statuses();
 @endphp
 
 @section('content')
@@ -62,6 +63,17 @@
         <label class="form-label">Langkah (pisahkan per baris)</label>
         <textarea name="steps" rows="7" class="form-control @error('steps') is-invalid @enderror" placeholder="1. Isi baris pertama&#10;2. Baris kedua">{{ old('steps', implode(PHP_EOL, ($flow->steps_list ?? []))) }}</textarea>
         @error('steps') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </div>
+
+    <div class="mt-3">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select @error('status') is-invalid @enderror">
+            @foreach($statusOptions as $key => $label)
+                <option value="{{ $key }}" @selected(old('status', $flow->status ?? 'draft') === $key)>{{ $label }}</option>
+            @endforeach
+        </select>
+        <small class="text-muted">Pilih <em>Draft</em> atau <em>Pending</em> jika menunggu persetujuan. Reviewer dapat langsung memilih <em>Terpublikasi</em>.</small>
+        @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
     <div class="mt-3">

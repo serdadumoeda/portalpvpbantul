@@ -66,14 +66,34 @@ class SurveyResponseController extends Controller
         }
 
         [$rules, $messages] = $this->buildValidationRules($survey);
+        // binding optional: class_id & instructor_id serta survey_instance_id (untuk survey kelas/instruktur)
+        $rules['class_id'] = 'nullable|exists:course_classes,id';
+        $rules['instructor_id'] = 'nullable|exists:users,id';
+        $rules['survey_instance_id'] = 'nullable|exists:survey_instances,id';
         $validated = $request->validate($rules, $messages);
         $this->verifyRecaptcha($request);
         $answersInput = $validated['responses'] ?? [];
 
         DB::transaction(function () use ($survey, $answersInput, $request) {
+            $instanceId = $request->input('survey_instance_id');
+            $classId = $request->input('class_id');
+            $instructorId = $request->input('instructor_id');
+
+            // Jika instance diberikan, tarik binding class/instructor dari instance
+            if ($instanceId) {
+                $instance = \App\Models\SurveyInstance::find($instanceId);
+                if ($instance && $instance->survey_id === $survey->id) {
+                    $classId = $classId ?: $instance->course_class_id;
+                    $instructorId = $instructorId ?: $instance->instructor_id;
+                }
+            }
+
             $response = SurveyResponse::create([
                 'survey_id' => $survey->id,
+                'survey_instance_id' => $instanceId,
                 'user_id' => auth()->id(),
+                'course_class_id' => $classId,
+                'instructor_id' => $instructorId,
                 'session_id' => $request->session()->getId(),
                 'ip_address' => $request->ip(),
                 'user_agent' => $request->userAgent(),
@@ -125,15 +145,16 @@ class SurveyResponseController extends Controller
                         $answerData['answer_numeric'] = $value !== null ? (float) $value : null;
                         $answerData['answer_text'] = $value !== null ? (string) $value : null;
                         break;
-                case 'file_upload':
-                    if ($request->hasFile("responses.{$question->id}")) {
-                        $file = $request->file("responses.{$question->id}");
-                        $path = $file->store('survey_uploads', 'public');
-                        $answerData['file_path'] = $path;
-                        $answerData['answer_text'] = $file->getClientOriginalName();
-                        $this->scanAttachment($path);
-                    }
-                    break;
+                    case 'file_upload':
+                        if ($request->hasFile("responses.{$question->id}")) {
+                            $file = $request->file("responses.{$question->id}");
+                            // simpan di storage privat untuk menghindari akses publik langsung
+                            $path = $file->store('survey_uploads');
+                            $answerData['file_path'] = $path;
+                            $answerData['answer_text'] = $file->getClientOriginalName();
+                            $this->scanAttachment($path);
+                        }
+                        break;
                     case 'date':
                     case 'time':
                         $answerData['answer_text'] = $value ? (string) $value : null;

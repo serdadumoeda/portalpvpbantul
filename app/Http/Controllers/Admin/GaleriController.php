@@ -6,17 +6,35 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Galeri; // Pastikan Model Galeri diimport
 use Illuminate\Support\Facades\Storage; // Penting untuk menghapus file fisik
+use App\Services\ActivityLogger;
 
 class GaleriController extends Controller
 {
+    public function __construct(private ActivityLogger $logger)
+    {
+    }
+
     /**
      * Menampilkan daftar galeri foto.
      */
-    public function index()
+    public function index(Request $request)
     {
+        $statusOptions = Galeri::statuses();
+        $statusFilter = $request->input('status');
+
+        $query = Galeri::query()->latest();
+        if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
+            $query->where('status', $statusFilter);
+        }
+
         // Mengambil data terbaru dengan pagination (10 per halaman)
-        $galeri = Galeri::latest()->paginate(10);
-        return view('admin.galeri.index', compact('galeri'));
+        $galeri = $query->paginate(10)->withQueryString();
+
+        return view('admin.galeri.index', [
+            'galeri' => $galeri,
+            'statusOptions' => $statusOptions,
+            'statusFilter' => $statusFilter,
+        ]);
     }
 
     /**
@@ -36,6 +54,7 @@ class GaleriController extends Controller
         $request->validate([
             'judul' => 'required|string|max:255',
             'gambar' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048', // Wajib ada gambar, maks 2MB
+            'status' => 'nullable|in:' . implode(',', array_keys(Galeri::statuses())),
         ]);
 
         // 2. Proses Upload Gambar
@@ -47,10 +66,22 @@ class GaleriController extends Controller
         }
 
         // 3. Simpan ke Database
-        Galeri::create([
+        $data = [
             'judul' => $request->judul,
             'gambar' => $imagePath,
-        ]);
+            'status' => $request->input('status'),
+        ];
+
+        $this->applyWorkflow($request, $data);
+
+        $galeri = Galeri::create($data);
+
+        $this->logger->log(
+            $request->user(),
+            'galeri.created',
+            "Galeri '{$request->judul}' ditambahkan",
+            $galeri
+        );
 
         return redirect()->route('admin.galeri.index')
             ->with('success', 'Foto berhasil ditambahkan ke galeri!');
@@ -70,6 +101,10 @@ class GaleriController extends Controller
      */
     public function update(Request $request, $id)
     {
+        $request->validate([
+            'status' => 'nullable|in:' . implode(',', array_keys(Galeri::statuses())),
+        ]);
+
         $galeri = Galeri::findOrFail($id);
 
         // 1. Validasi
@@ -81,6 +116,7 @@ class GaleriController extends Controller
         // 2. Persiapkan data update
         $data = [
             'judul' => $request->judul,
+            'status' => $request->input('status', $galeri->status),
         ];
 
         // 3. Cek apakah user mengupload gambar baru
@@ -99,8 +135,16 @@ class GaleriController extends Controller
             $data['gambar'] = '/storage/' . $path;
         }
 
+        $this->applyWorkflow($request, $data, $galeri);
         // 4. Update Database
         $galeri->update($data);
+
+        $this->logger->log(
+            $request->user(),
+            'galeri.updated',
+            "Galeri '{$galeri->judul}' diperbarui",
+            $galeri
+        );
 
         return redirect()->route('admin.galeri.index')
             ->with('success', 'Data galeri berhasil diperbarui!');
@@ -124,7 +168,36 @@ class GaleriController extends Controller
         // 2. Hapus Record Database
         $galeri->delete();
 
+        $this->logger->log(
+            request()->user(),
+            'galeri.deleted',
+            "Galeri '{$galeri->judul}' dihapus",
+            $galeri
+        );
+
         return redirect()->route('admin.galeri.index')
             ->with('success', 'Foto berhasil dihapus!');
+    }
+
+    private function applyWorkflow(Request $request, array &$data, ?Galeri $galeri = null): void
+    {
+        $defaultStatus = $request->user()->hasPermission('approve-content') ? 'published' : 'draft';
+        $currentStatus = $galeri ? $galeri->status : $defaultStatus;
+        $requestedStatus = $data['status'] ?? $currentStatus;
+
+        if (! $request->user()->hasPermission('approve-content') && $requestedStatus === 'published') {
+            $requestedStatus = 'pending';
+        }
+
+        $data['status'] = $requestedStatus ?: $currentStatus;
+
+        if ($data['status'] === 'published') {
+            $data['approved_by'] = $request->user()->id;
+            $data['approved_at'] = now();
+            $data['published_at'] = $galeri?->published_at ?? now();
+        } else {
+            $data['approved_by'] = null;
+            $data['approved_at'] = null;
+        }
     }
 }

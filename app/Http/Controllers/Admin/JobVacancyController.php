@@ -6,13 +6,31 @@ use App\Http\Controllers\Controller;
 use App\Models\JobVacancy;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Storage;
+use App\Services\ActivityLogger;
 
 class JobVacancyController extends Controller
 {
-    public function index()
+    public function __construct(private ActivityLogger $logger)
     {
-        $vacancies = JobVacancy::latest()->paginate(12);
-        return view('admin.lowongan.index', compact('vacancies'));
+    }
+
+    public function index(Request $request)
+    {
+        $statusOptions = JobVacancy::statuses();
+        $statusFilter = $request->input('status');
+
+        $query = JobVacancy::latest();
+        if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
+            $query->where('status', $statusFilter);
+        }
+
+        $vacancies = $query->paginate(12)->withQueryString();
+        return view('admin.lowongan.index', [
+            'vacancies' => $vacancies,
+            'statusOptions' => $statusOptions,
+            'statusFilter' => $statusFilter,
+        ]);
     }
 
     public function create()
@@ -30,7 +48,16 @@ class JobVacancyController extends Controller
         if ($request->hasFile('gambar')) {
             $data['gambar'] = '/storage/' . $request->file('gambar')->store('lowongan', 'public');
         }
-        JobVacancy::create($data);
+        $this->applyWorkflow($request, $data);
+        $vacancy = JobVacancy::create($data);
+
+        $this->logger->log(
+            $request->user(),
+            'lowongan.created',
+            "Lowongan '{$vacancy->judul}' ditambahkan",
+            $vacancy,
+            ['active' => $vacancy->is_active]
+        );
         return redirect()->route('admin.lowongan.index')->with('success', 'Lowongan berhasil ditambahkan.');
     }
 
@@ -47,15 +74,39 @@ class JobVacancyController extends Controller
     {
         $data = $this->validatedData($request);
         if ($request->hasFile('gambar')) {
+            if ($lowongan->gambar) {
+                $oldPath = str_replace('/storage/', '', $lowongan->gambar);
+                Storage::disk('public')->delete($oldPath);
+            }
             $data['gambar'] = '/storage/' . $request->file('gambar')->store('lowongan', 'public');
         }
+        $this->applyWorkflow($request, $data, $lowongan);
         $lowongan->update($data);
+
+        $this->logger->log(
+            $request->user(),
+            'lowongan.updated',
+            "Lowongan '{$lowongan->judul}' diperbarui",
+            $lowongan,
+            ['active' => $lowongan->is_active]
+        );
         return redirect()->route('admin.lowongan.index')->with('success', 'Lowongan diperbarui.');
     }
 
     public function destroy(JobVacancy $lowongan)
     {
+        if ($lowongan->gambar) {
+            $oldPath = str_replace('/storage/', '', $lowongan->gambar);
+            Storage::disk('public')->delete($oldPath);
+        }
         $lowongan->delete();
+
+        $this->logger->log(
+            request()->user(),
+            'lowongan.deleted',
+            "Lowongan '{$lowongan->judul}' dihapus",
+            $lowongan
+        );
         return redirect()->route('admin.lowongan.index')->with('success', 'Lowongan dihapus.');
     }
 
@@ -72,6 +123,7 @@ class JobVacancyController extends Controller
             'link_pendaftaran' => 'nullable|url',
             'is_active' => 'nullable|boolean',
             'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'status' => 'nullable|in:' . implode(',', array_keys(JobVacancy::statuses())),
         ]);
 
         $defaults = [
@@ -91,5 +143,26 @@ class JobVacancyController extends Controller
 
         $data['is_active'] = $request->boolean('is_active');
         return $data;
+    }
+
+    private function applyWorkflow(Request $request, array &$data, ?JobVacancy $vacancy = null): void
+    {
+        $currentStatus = $vacancy ? $vacancy->status : ($request->user()->hasPermission('approve-content') ? 'published' : 'draft');
+        $requestedStatus = $data['status'] ?? $currentStatus;
+
+        if (! $request->user()->hasPermission('approve-content') && $requestedStatus === 'published') {
+            $requestedStatus = 'pending';
+        }
+
+        $data['status'] = $requestedStatus ?: $currentStatus;
+
+        if ($data['status'] === 'published') {
+            $data['approved_by'] = $request->user()->id;
+            $data['approved_at'] = now();
+            $data['published_at'] = $vacancy?->published_at ?? now();
+        } else {
+            $data['approved_by'] = null;
+            $data['approved_at'] = null;
+        }
     }
 }

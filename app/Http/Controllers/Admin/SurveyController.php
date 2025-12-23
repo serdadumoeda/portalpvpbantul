@@ -6,10 +6,10 @@ use App\Http\Controllers\Controller;
 use App\Exports\SurveyResponsesExport;
 use App\Models\Survey;
 use App\Models\SurveyVersion;
-use App\Models\SurveyAnswer;
 use App\Models\SurveyQuestion;
 use App\Models\SurveyQuestionOption;
 use App\Models\SurveyCollaborator;
+use App\Models\SurveyAnswer;
 use App\Models\User;
 use Illuminate\Support\Str;
 use Illuminate\Http\Request;
@@ -17,6 +17,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
+use Illuminate\Support\Facades\Storage;
 use Maatwebsite\Excel\Facades\Excel;
 
 class SurveyController extends Controller
@@ -721,5 +722,33 @@ class SurveyController extends Controller
         }
 
         abort(403, 'Anda tidak memiliki akses ke survey ini.');
+    }
+
+    public function downloadAttachment(SurveyAnswer $answer)
+    {
+        $answer->loadMissing('response.survey');
+        if (! $answer->response || ! $answer->response->survey) {
+            abort(404);
+        }
+
+        $this->authorizeSurvey($answer->response->survey, 'viewer');
+
+        if (! $answer->file_path) {
+            abort(404);
+        }
+
+        $path = $answer->file_path;
+        $disk = null;
+
+        if (Storage::exists($path)) {
+            $disk = config('filesystems.default', 'local');
+        } elseif (Storage::disk('public')->exists($path)) {
+            $disk = 'public';
+        } else {
+            abort(404);
+        }
+
+        $name = basename($path);
+        return Storage::disk($disk)->download($path, $name);
     }
 }

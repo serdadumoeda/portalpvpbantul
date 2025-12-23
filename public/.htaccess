@@ -23,3 +23,8 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# PHP upload limits for admin media (per file 2MB, allow multiple fields)
+php_value upload_max_filesize 2M
+php_value post_max_size 12M
+php_value memory_limit 512M

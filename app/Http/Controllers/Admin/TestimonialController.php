@@ -5,13 +5,26 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Testimonial;
 use Illuminate\Http\Request;
+use App\Services\ActivityLogger;
 
 class TestimonialController extends Controller
 {
+    public function __construct(private ActivityLogger $logger)
+    {
+    }
+
     public function index()
     {
-        $testimonials = Testimonial::orderBy('urutan')->get();
-        return view('admin.testimonial.index', compact('testimonials'));
+        $statusOptions = Testimonial::statuses();
+        $statusFilter = request('status');
+
+        $query = Testimonial::orderBy('urutan');
+        if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
+            $query->where('status', $statusFilter);
+        }
+
+        $testimonials = $query->get();
+        return view('admin.testimonial.index', compact('testimonials', 'statusOptions', 'statusFilter'));
     }
 
     public function create()
@@ -26,7 +39,15 @@ class TestimonialController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateData($request);
-        Testimonial::create($data);
+        $this->applyWorkflow($request, $data);
+        $testimonial = Testimonial::create($data);
+
+        $this->logger->log(
+            $request->user(),
+            'testimonial.created',
+            "Testimoni '{$testimonial->nama}' ditambahkan",
+            $testimonial
+        );
         return redirect()->route('admin.testimonial.index')->with('success', 'Testimoni berhasil ditambahkan.');
     }
 
@@ -42,12 +63,26 @@ class TestimonialController extends Controller
     public function update(Request $request, Testimonial $testimonial)
     {
         $data = $this->validateData($request);
+        $this->applyWorkflow($request, $data, $testimonial);
         $testimonial->update($data);
+
+        $this->logger->log(
+            $request->user(),
+            'testimonial.updated',
+            "Testimoni '{$testimonial->nama}' diperbarui",
+            $testimonial
+        );
         return redirect()->route('admin.testimonial.index')->with('success', 'Testimoni diperbarui.');
     }
 
     public function destroy(Testimonial $testimonial)
     {
+        $this->logger->log(
+            request()->user(),
+            'testimonial.deleted',
+            "Testimoni '{$testimonial->nama}' dihapus",
+            $testimonial
+        );
         $testimonial->delete();
         return redirect()->route('admin.testimonial.index')->with('success', 'Testimoni dihapus.');
     }
@@ -58,9 +93,10 @@ class TestimonialController extends Controller
             'nama' => 'required|string|max:255',
             'jabatan' => 'nullable|string|max:255',
             'pesan' => 'nullable|string|max:2000',
-            'video_url' => ['nullable', 'url', 'regex:/^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/i'],
+            'video_url' => ['nullable', 'url', 'regex:/^(https?:\\/\\/)?(www\\.)?(youtube\\.com|youtu\\.be)\\/.+$/i'],
             'urutan' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
+            'status' => 'nullable|in:' . implode(',', array_keys(Testimonial::statuses())),
         ], [
             'video_url.regex' => 'Video URL harus berasal dari YouTube.',
         ]);
@@ -69,5 +105,27 @@ class TestimonialController extends Controller
         $data['is_active'] = $request->boolean('is_active');
 
         return $data;
+    }
+
+    private function applyWorkflow(Request $request, array &$data, ?Testimonial $testimonial = null): void
+    {
+        $defaultStatus = $request->user()->hasPermission('approve-content') ? 'published' : 'draft';
+        $currentStatus = $testimonial ? $testimonial->status : $defaultStatus;
+        $requestedStatus = $data['status'] ?? $currentStatus;
+
+        if (! $request->user()->hasPermission('approve-content') && $requestedStatus === 'published') {
+            $requestedStatus = 'pending';
+        }
+
+        $data['status'] = $requestedStatus ?: $currentStatus;
+
+        if ($data['status'] === 'published') {
+            $data['approved_by'] = $request->user()->id;
+            $data['approved_at'] = now();
+            $data['published_at'] = $testimonial?->published_at ?? now();
+        } else {
+            $data['approved_by'] = null;
+            $data['approved_at'] = null;
+        }
     }
 }

@@ -16,11 +16,14 @@ class SurveyAnswer extends Model
         'answer_text',
         'selected_option_ids',
         'answer_numeric',
+        'answer_json',
+        'file_path',
     ];
 
     protected $casts = [
         'selected_option_ids' => 'array',
         'answer_numeric' => 'float',
+        'answer_json' => 'array',
     ];
 
     public function response(): BelongsTo

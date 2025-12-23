@@ -56,7 +56,7 @@
         @if($ppid_request->tanda_tangan)
             <hr>
             <h6 class="text-muted">Tanda Tangan</h6>
-            <a href="{{ asset($ppid_request->tanda_tangan) }}" target="_blank" class="btn btn-outline-primary btn-sm">Lihat File</a>
+            <a href="{{ route('admin.ppid-request.download', $ppid_request) }}" class="btn btn-outline-primary btn-sm">Unduh File</a>
         @endif
     </div>
 </div>

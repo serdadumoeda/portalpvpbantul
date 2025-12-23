@@ -61,9 +61,7 @@ class AuthController extends Controller
         $request->session()->regenerate();
 
         $user = Auth::user();
-        $defaultRedirect = $user->hasPermission('access-admin')
-            ? route('admin.dashboard')
-            : route('alumni.forum.index');
+        $defaultRedirect = $this->defaultRedirect($user);
 
         if ($user->two_factor_enabled) {
             $intended = session('url.intended') ?? $defaultRedirect;
@@ -135,9 +133,7 @@ class AuthController extends Controller
                 event(new PasswordReset($user));
                 $this->logger->log($user, 'password.reset', 'Pengguna memperbarui password melalui tautan reset');
                 Auth::login($user);
-                $redirectTo ??= $user->hasPermission('access-admin')
-                    ? route('admin.dashboard')
-                    : route('alumni.forum.index');
+                $redirectTo ??= $this->defaultRedirect($user);
             }
         );
 
@@ -194,7 +190,7 @@ class AuthController extends Controller
 
         $this->logger->log($user, 'login.success', 'Login 2FA berhasil');
 
-        return redirect()->to($intended);
+        return redirect()->to($intended ?? $this->defaultRedirect($user));
     }
 
     public function resendTwoFactorCode(Request $request)
@@ -239,5 +235,22 @@ class AuthController extends Controller
             $resend ? 'twofactor.resend' : 'twofactor.sent',
             $resend ? 'Kode 2FA dikirim ulang' : 'Kode 2FA dikirim ke email'
         );
+    }
+
+    private function defaultRedirect(User $user): string
+    {
+        if ($user->hasPermission('access-admin')) {
+            return route('admin.dashboard');
+        }
+
+        if ($user->hasRole('participant')) {
+            return route('participant.classes');
+        }
+
+        if ($user->hasPermission('access-alumni-forum')) {
+            return route('alumni.forum.index');
+        }
+
+        return route('home');
     }
 }

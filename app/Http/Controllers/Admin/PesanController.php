@@ -15,11 +15,12 @@ class PesanController extends Controller
         $search = request('q');
 
         if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('nama', 'ilike', "%{$search}%")
-                    ->orWhere('email', 'ilike', "%{$search}%")
-                    ->orWhere('subjek', 'ilike', "%{$search}%")
-                    ->orWhere('pesan', 'ilike', "%{$search}%");
+            $searchLower = mb_strtolower($search);
+            $query->where(function ($q) use ($searchLower) {
+                $q->whereRaw('LOWER(nama) LIKE ?', ["%{$searchLower}%"])
+                    ->orWhereRaw('LOWER(email) LIKE ?', ["%{$searchLower}%"])
+                    ->orWhereRaw('LOWER(subjek) LIKE ?', ["%{$searchLower}%"])
+                    ->orWhereRaw('LOWER(pesan) LIKE ?', ["%{$searchLower}%"]);
             });
         }
 

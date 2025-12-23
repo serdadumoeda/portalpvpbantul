@@ -16,10 +16,28 @@ class InfographicEmbed extends Model
         'url',
         'height',
         'urutan',
+        'status',
+        'approved_by',
+        'approved_at',
+        'published_at',
+    ];
+
+    protected $casts = [
+        'approved_at' => 'datetime',
+        'published_at' => 'datetime',
     ];
 
     public function year()
     {
         return $this->belongsTo(InfographicYear::class, 'infographic_year_id');
+    }
+
+    public static function statuses(): array
+    {
+        return [
+            'draft' => 'Draft',
+            'pending' => 'Menunggu Review',
+            'published' => 'Terpublikasi',
+        ];
     }
 }

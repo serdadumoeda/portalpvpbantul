@@ -54,6 +54,12 @@ class ActivityLogController extends Controller
     {
         $this->authorize('deleteAny', ActivityLog::class);
 
+        $request->validate([
+            'confirm' => 'required|in:CONFIRM',
+        ], [
+            'confirm.in' => 'Ketik CONFIRM untuk membersihkan seluruh log.',
+        ]);
+
         ActivityLog::query()->delete();
 
         return redirect()->route('admin.activity-logs.index')

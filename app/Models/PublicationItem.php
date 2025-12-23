@@ -22,15 +22,30 @@ class PublicationItem extends Model
         'extra',
         'urutan',
         'is_active',
+        'status',
+        'approved_by',
+        'approved_at',
+        'published_at',
     ];
 
     protected $casts = [
         'extra' => 'array',
         'is_active' => 'boolean',
+        'approved_at' => 'datetime',
+        'published_at' => 'datetime',
     ];
 
     public function category()
     {
         return $this->belongsTo(PublicationCategory::class, 'publication_category_id');
+    }
+
+    public static function statuses(): array
+    {
+        return [
+            'draft' => 'Draft',
+            'pending' => 'Menunggu Review',
+            'published' => 'Terpublikasi',
+        ];
     }
 }

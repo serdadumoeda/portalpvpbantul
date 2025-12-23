@@ -6,13 +6,30 @@ use App\Http\Controllers\Controller;
 use App\Models\Empowerment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use App\Services\ActivityLogger;
 
 class EmpowermentController extends Controller
 {
-    public function index()
+    public function __construct(private ActivityLogger $logger)
     {
-        $items = Empowerment::orderBy('urutan')->get();
-        return view('admin.empowerment.index', compact('items'));
+    }
+
+    public function index(Request $request)
+    {
+        $statusOptions = Empowerment::statuses();
+        $statusFilter = $request->input('status');
+
+        $query = Empowerment::orderBy('urutan');
+        if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
+            $query->where('status', $statusFilter);
+        }
+
+        $items = $query->get();
+        return view('admin.empowerment.index', [
+            'items' => $items,
+            'statusOptions' => $statusOptions,
+            'statusFilter' => $statusFilter,
+        ]);
     }
 
     public function create()
@@ -31,7 +48,15 @@ class EmpowermentController extends Controller
             $path = $request->file('gambar')->store('empowerments', 'public');
             $data['gambar'] = '/storage/' . $path;
         }
-        Empowerment::create($data);
+        $this->applyWorkflow($request, $data);
+        $item = Empowerment::create($data);
+
+        $this->logger->log(
+            $request->user(),
+            'empowerment.created',
+            "Konten pemberdayaan '{$item->judul}' ditambahkan",
+            $item
+        );
         return redirect()->route('admin.empowerment.index')->with('success', 'Konten pemberdayaan ditambahkan.');
     }
 
@@ -49,18 +74,36 @@ class EmpowermentController extends Controller
         $data = $this->validateData($request);
         if ($request->hasFile('gambar')) {
             if ($empowerment->gambar && Storage::exists(str_replace('/storage/', 'public/', $empowerment->gambar))) {
-                // Storage::delete(str_replace('/storage/', 'public/', $empowerment->gambar));
+                Storage::delete(str_replace('/storage/', 'public/', $empowerment->gambar));
             }
             $path = $request->file('gambar')->store('empowerments', 'public');
             $data['gambar'] = '/storage/' . $path;
         }
+        $this->applyWorkflow($request, $data, $empowerment);
         $empowerment->update($data);
+
+        $this->logger->log(
+            $request->user(),
+            'empowerment.updated',
+            "Konten pemberdayaan '{$empowerment->judul}' diperbarui",
+            $empowerment
+        );
         return redirect()->route('admin.empowerment.index')->with('success', 'Konten pemberdayaan diperbarui.');
     }
 
     public function destroy(Empowerment $empowerment)
     {
+        if ($empowerment->gambar && Storage::exists(str_replace('/storage/', 'public/', $empowerment->gambar))) {
+            Storage::delete(str_replace('/storage/', 'public/', $empowerment->gambar));
+        }
         $empowerment->delete();
+
+        $this->logger->log(
+            request()->user(),
+            'empowerment.deleted',
+            "Konten pemberdayaan '{$empowerment->judul}' dihapus",
+            $empowerment
+        );
         return redirect()->route('admin.empowerment.index')->with('success', 'Konten pemberdayaan dihapus.');
     }
 
@@ -72,6 +115,28 @@ class EmpowermentController extends Controller
             'urutan' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
             'gambar' => 'nullable|image|max:2048',
+            'status' => 'nullable|in:' . implode(',', array_keys(Empowerment::statuses())),
         ]);
+    }
+
+    private function applyWorkflow(Request $request, array &$data, ?Empowerment $empowerment = null): void
+    {
+        $currentStatus = $empowerment ? $empowerment->status : ($request->user()->hasPermission('approve-content') ? 'published' : 'draft');
+        $requestedStatus = $data['status'] ?? $currentStatus;
+
+        if (! $request->user()->hasPermission('approve-content') && $requestedStatus === 'published') {
+            $requestedStatus = 'pending';
+        }
+
+        $data['status'] = $requestedStatus ?: $currentStatus;
+
+        if ($data['status'] === 'published') {
+            $data['approved_by'] = $request->user()->id;
+            $data['approved_at'] = now();
+            $data['published_at'] = $empowerment?->published_at ?? now();
+        } else {
+            $data['approved_by'] = null;
+            $data['approved_at'] = null;
+        }
     }
 }

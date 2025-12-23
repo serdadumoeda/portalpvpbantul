@@ -15,6 +15,9 @@ class RoleSeeder extends Seeder
             ['name' => 'editor', 'label' => 'Editor Konten'],
             ['name' => 'viewer', 'label' => 'Viewer'],
             ['name' => 'moderator', 'label' => 'Moderator Forum'],
+            ['name' => 'reviewer', 'label' => 'Reviewer Konten'],
+            ['name' => 'instructor', 'label' => 'Instruktur'],
+            ['name' => 'participant', 'label' => 'Peserta Pelatihan'],
             ['name' => 'alumni', 'label' => 'Alumni'],
         ];
 

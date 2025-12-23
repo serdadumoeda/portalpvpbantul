@@ -5,13 +5,31 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\CertificationScheme;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use App\Services\ActivityLogger;
 
 class CertificationSchemeController extends Controller
 {
-    public function index()
+    public function __construct(private ActivityLogger $logger)
     {
-        $items = CertificationScheme::orderBy('category')->orderBy('urutan')->get();
-        return view('admin.certification_scheme.index', compact('items'));
+    }
+
+    public function index(Request $request)
+    {
+        $statusOptions = CertificationScheme::statuses();
+        $statusFilter = $request->input('status');
+
+        $query = CertificationScheme::orderBy('category')->orderBy('urutan');
+        if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
+            $query->where('status', $statusFilter);
+        }
+
+        $items = $query->get();
+        return view('admin.certification_scheme.index', [
+            'items' => $items,
+            'statusOptions' => $statusOptions,
+            'statusFilter' => $statusFilter,
+        ]);
     }
 
     public function create()
@@ -31,7 +49,15 @@ class CertificationSchemeController extends Controller
             $path = $request->file('gambar')->store('certification/schemes', 'public');
             $data['image_path'] = '/storage/' . $path;
         }
-        CertificationScheme::create($data);
+        $this->applyWorkflow($request, $data);
+        $scheme = CertificationScheme::create($data);
+
+        $this->logger->log(
+            $request->user(),
+            'certification.scheme.created',
+            "Skema sertifikasi '{$scheme->title}' ditambahkan",
+            $scheme
+        );
         return redirect()->route('admin.certification-scheme.index')->with('success', 'Skema sertifikasi ditambahkan.');
     }
 
@@ -49,16 +75,39 @@ class CertificationSchemeController extends Controller
     {
         $data = $this->validatedData($request);
         if ($request->hasFile('gambar')) {
+            if ($certification_scheme->image_path) {
+                $old = str_replace('/storage/', '', $certification_scheme->image_path);
+                Storage::disk('public')->delete($old);
+            }
             $path = $request->file('gambar')->store('certification/schemes', 'public');
             $data['image_path'] = '/storage/' . $path;
         }
+        $this->applyWorkflow($request, $data, $certification_scheme);
         $certification_scheme->update($data);
+
+        $this->logger->log(
+            $request->user(),
+            'certification.scheme.updated',
+            "Skema sertifikasi '{$certification_scheme->title}' diperbarui",
+            $certification_scheme
+        );
         return redirect()->route('admin.certification-scheme.index')->with('success', 'Skema sertifikasi diperbarui.');
     }
 
     public function destroy(CertificationScheme $certification_scheme)
     {
+        if ($certification_scheme->image_path) {
+            $old = str_replace('/storage/', '', $certification_scheme->image_path);
+            Storage::disk('public')->delete($old);
+        }
         $certification_scheme->delete();
+
+        $this->logger->log(
+            request()->user(),
+            'certification.scheme.deleted',
+            "Skema sertifikasi '{$certification_scheme->title}' dihapus",
+            $certification_scheme
+        );
         return redirect()->route('admin.certification-scheme.index')->with('success', 'Skema sertifikasi dihapus.');
     }
 
@@ -74,6 +123,7 @@ class CertificationSchemeController extends Controller
             'urutan' => 'nullable|integer|min:0',
             'is_active' => 'nullable|boolean',
             'gambar' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            'status' => 'nullable|in:' . implode(',', array_keys(CertificationScheme::statuses())),
         ]);
 
         $data['is_active'] = $request->boolean('is_active');
@@ -89,5 +139,27 @@ class CertificationSchemeController extends Controller
             'kluster' => 'Kluster',
             'okupasi' => 'Okupasi',
         ];
+    }
+
+    private function applyWorkflow(Request $request, array &$data, ?CertificationScheme $scheme = null): void
+    {
+        $defaultStatus = $request->user()->hasPermission('approve-content') ? 'published' : 'draft';
+        $currentStatus = $scheme ? $scheme->status : $defaultStatus;
+        $requestedStatus = $data['status'] ?? $currentStatus;
+
+        if (! $request->user()->hasPermission('approve-content')) {
+            $requestedStatus = $requestedStatus === 'published' ? 'pending' : $requestedStatus;
+        }
+
+        $data['status'] = $requestedStatus ?: $currentStatus;
+
+        if ($data['status'] === 'published') {
+            $data['approved_by'] = $request->user()->id;
+            $data['approved_at'] = now();
+            $data['published_at'] = $scheme?->published_at ?? now();
+        } else {
+            $data['approved_by'] = null;
+            $data['approved_at'] = null;
+        }
     }
 }

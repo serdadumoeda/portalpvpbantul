@@ -1,5 +1,9 @@
 @extends('layouts.admin')
 
+@php
+    $statusOptions = $statusOptions ?? \App\Models\Pengumuman::statuses();
+@endphp
+
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>Kelola Pengumuman</h3>
@@ -16,6 +20,25 @@
                 \App\Models\Pengumuman::STATUS_PUBLISHED => 'success',
             ];
         @endphp
+        <form method="GET" class="row g-2 align-items-end mb-3">
+            <div class="col-sm-4 col-md-3">
+                <label class="form-label mb-1">Filter Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">Semua</option>
+                    @foreach($statusOptions as $key => $label)
+                        <option value="{{ $key }}" @selected(request('status', $statusFilter ?? null) === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-sm btn-outline-primary">Terapkan</button>
+            </div>
+            @if(request('status'))
+                <div class="col-auto">
+                    <a href="{{ route('admin.pengumuman.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                </div>
+            @endif
+        </form>
         <table class="table table-bordered table-hover">
             <thead class="table-light">
                 <tr>

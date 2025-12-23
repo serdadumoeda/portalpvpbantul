@@ -23,10 +23,25 @@ class CertificationContent extends Model
         'background',
         'is_active',
         'urutan',
+        'status',
+        'approved_by',
+        'approved_at',
+        'published_at',
     ];
 
     protected $casts = [
         'list_items' => 'array',
         'is_active' => 'boolean',
+        'approved_at' => 'datetime',
+        'published_at' => 'datetime',
     ];
+
+    public static function statuses(): array
+    {
+        return [
+            'draft' => 'Draft',
+            'pending' => 'Menunggu Review',
+            'published' => 'Terpublikasi',
+        ];
+    }
 }

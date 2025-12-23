@@ -9,10 +9,22 @@ use Illuminate\Support\Facades\Storage;
 
 class TrainingServiceController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $services = TrainingService::orderBy('urutan')->get();
-        return view('admin.training_service.index', compact('services'));
+        $statusOptions = TrainingService::statuses();
+        $statusFilter = $request->input('status');
+
+        $query = TrainingService::orderBy('urutan');
+        if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
+            $query->where('status', $statusFilter);
+        }
+
+        $services = $query->get();
+        return view('admin.training_service.index', [
+            'services' => $services,
+            'statusOptions' => $statusOptions,
+            'statusFilter' => $statusFilter,
+        ]);
     }
 
     public function create()
@@ -31,6 +43,7 @@ class TrainingServiceController extends Controller
             $path = $request->file('gambar')->store('training_services', 'public');
             $data['gambar'] = '/storage/' . $path;
         }
+        $this->applyWorkflow($request, $data);
         TrainingService::create($data);
         return redirect()->route('admin.training-service.index')->with('success', 'Layanan pelatihan ditambahkan.');
     }
@@ -49,17 +62,21 @@ class TrainingServiceController extends Controller
         $data = $this->validateData($request);
         if ($request->hasFile('gambar')) {
             if ($training_service->gambar && Storage::exists(str_replace('/storage/', 'public/', $training_service->gambar))) {
-                // Storage::delete(str_replace('/storage/', 'public/', $training_service->gambar));
+                Storage::delete(str_replace('/storage/', 'public/', $training_service->gambar));
             }
             $path = $request->file('gambar')->store('training_services', 'public');
             $data['gambar'] = '/storage/' . $path;
         }
+        $this->applyWorkflow($request, $data, $training_service);
         $training_service->update($data);
         return redirect()->route('admin.training-service.index')->with('success', 'Layanan pelatihan diperbarui.');
     }
 
     public function destroy(TrainingService $training_service)
     {
+        if ($training_service->gambar && Storage::exists(str_replace('/storage/', 'public/', $training_service->gambar))) {
+            Storage::delete(str_replace('/storage/', 'public/', $training_service->gambar));
+        }
         $training_service->delete();
         return redirect()->route('admin.training-service.index')->with('success', 'Layanan pelatihan dihapus.');
     }
@@ -73,6 +90,28 @@ class TrainingServiceController extends Controller
             'urutan' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
             'gambar' => 'nullable|image|max:2048',
+            'status' => 'nullable|in:' . implode(',', array_keys(\App\Models\TrainingService::statuses())),
         ]);
+    }
+
+    private function applyWorkflow(Request $request, array &$data, ?TrainingService $service = null): void
+    {
+        $currentStatus = $service ? $service->status : ($request->user()->hasPermission('approve-content') ? 'published' : 'draft');
+        $requestedStatus = $data['status'] ?? $currentStatus;
+
+        if (! $request->user()->hasPermission('approve-content') && $requestedStatus === 'published') {
+            $requestedStatus = 'pending';
+        }
+
+        $data['status'] = $requestedStatus ?: $currentStatus;
+
+        if ($data['status'] === 'published') {
+            $data['approved_by'] = $request->user()->id;
+            $data['approved_at'] = now();
+            $data['published_at'] = $service?->published_at ?? now();
+        } else {
+            $data['approved_by'] = null;
+            $data['approved_at'] = null;
+        }
     }
 }

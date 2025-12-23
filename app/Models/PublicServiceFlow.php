@@ -18,10 +18,16 @@ class PublicServiceFlow extends Model
         'steps',
         'urutan',
         'is_active',
+        'status',
+        'approved_by',
+        'approved_at',
+        'published_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'approved_at' => 'datetime',
+        'published_at' => 'datetime',
     ];
 
     public function getStepsListAttribute(): array
@@ -47,5 +53,14 @@ class PublicServiceFlow extends Model
         }
 
         $this->attributes['steps'] = $value;
+    }
+
+    public static function statuses(): array
+    {
+        return [
+            'draft' => 'Draft',
+            'pending' => 'Menunggu Review',
+            'published' => 'Terpublikasi',
+        ];
     }
 }

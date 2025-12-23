@@ -306,11 +306,13 @@ class HomeController extends Controller
             'form_description' => 'Isi formulir berikut untuk mengajukan permohonan informasi.',
         ]);
         $highlights = PpidHighlight::where('is_active', true)->orderBy('urutan')->get();
+        $captcha = $this->prepareCaptcha(self::PPID_CAPTCHA_KEY);
 
         return view('ppid', [
             'setting' => $pageSetting,
             'highlights' => $highlights,
             'settings' => $settings,
+            'captchaQuestion' => $captcha['question'],
         ]);
     }
 
@@ -329,10 +331,14 @@ class HomeController extends Controller
             'tujuan_penggunaan' => 'nullable|string',
             'cara_memperoleh' => 'nullable|string',
             'tanda_tangan' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+            'captcha_answer' => 'required|numeric',
         ]);
 
+        $this->validateCaptcha($request, self::PPID_CAPTCHA_KEY, 'captcha_answer');
+
         if ($request->hasFile('tanda_tangan')) {
-            $data['tanda_tangan'] = '/storage/' . $request->file('tanda_tangan')->store('ppid/signatures', 'public');
+            // simpan di storage privat agar tidak bisa diakses langsung
+            $data['tanda_tangan'] = $request->file('tanda_tangan')->store('ppid/signatures');
         }
 
         PpidRequest::create($data);
@@ -553,6 +559,7 @@ class HomeController extends Controller
 
     private const CONTACT_CAPTCHA_KEY = 'contact_form_captcha';
     private const TRACER_CAPTCHA_KEY = 'tracer_form_captcha';
+    private const PPID_CAPTCHA_KEY = 'ppid_form_captcha';
 
     private function prepareCaptcha(string $sessionKey, bool $forceNew = false): array
     {

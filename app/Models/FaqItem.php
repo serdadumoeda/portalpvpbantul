@@ -16,14 +16,29 @@ class FaqItem extends Model
         'answer',
         'urutan',
         'is_active',
+        'status',
+        'approved_by',
+        'approved_at',
+        'published_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'approved_at' => 'datetime',
+        'published_at' => 'datetime',
     ];
 
     public function category()
     {
         return $this->belongsTo(FaqCategory::class, 'faq_category_id');
+    }
+
+    public static function statuses(): array
+    {
+        return [
+            'draft' => 'Draft',
+            'pending' => 'Menunggu Review',
+            'published' => 'Terpublikasi',
+        ];
     }
 }

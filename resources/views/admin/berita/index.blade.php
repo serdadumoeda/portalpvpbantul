@@ -1,5 +1,9 @@
 @extends('layouts.admin')
 
+@php
+    $statusOptions = $statusOptions ?? \App\Models\Berita::statuses();
+@endphp
+
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>Kelola Berita</h3>
@@ -16,6 +20,25 @@
                 \App\Models\Berita::STATUS_PUBLISHED => 'success',
             ];
         @endphp
+        <form method="GET" class="row g-2 align-items-end mb-3">
+            <div class="col-sm-4 col-md-3">
+                <label class="form-label mb-1">Filter Status</label>
+                <select name="status" class="form-select form-select-sm">
+                    <option value="">Semua</option>
+                    @foreach($statusOptions as $key => $label)
+                        <option value="{{ $key }}" @selected(request('status', $statusFilter ?? null) === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
+            <div class="col-auto">
+                <button class="btn btn-sm btn-outline-primary">Terapkan</button>
+            </div>
+            @if(request('status'))
+                <div class="col-auto">
+                    <a href="{{ route('admin.berita.index') }}" class="btn btn-sm btn-link text-decoration-none">Reset</a>
+                </div>
+            @endif
+        </form>
         <div class="table-responsive">
             <table class="table table-hover table-bordered mb-0">
             <thead class="table-light">

@@ -7,13 +7,30 @@ use App\Models\Pengumuman;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Services\ActivityLogger;
 
 class PengumumanController extends Controller
 {
-    public function index()
+    public function __construct(private ActivityLogger $logger)
     {
-        $pengumuman = Pengumuman::latest()->paginate(10);
-        return view('admin.pengumuman.index', compact('pengumuman'));
+    }
+
+    public function index(Request $request)
+    {
+        $statusOptions = Pengumuman::statuses();
+        $statusFilter = $request->input('status');
+
+        $query = Pengumuman::latest();
+        if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
+            $query->where('status', $statusFilter);
+        }
+
+        $pengumuman = $query->paginate(10)->withQueryString();
+        return view('admin.pengumuman.index', [
+            'pengumuman' => $pengumuman,
+            'statusOptions' => $statusOptions,
+            'statusFilter' => $statusFilter,
+        ]);
     }
 
     public function create()
@@ -34,7 +51,15 @@ class PengumumanController extends Controller
         $this->applyWorkflow($request, $data);
         $this->prepareSeo($request, $data);
 
-        Pengumuman::create($data);
+        $pengumuman = Pengumuman::create($data);
+
+        $this->logger->log(
+            $request->user(),
+            'pengumuman.created',
+            "Pengumuman '{$pengumuman->judul}' ditambahkan",
+            $pengumuman,
+            ['status' => $pengumuman->status]
+        );
 
         return redirect()->route('admin.pengumuman.index')
             ->with('success', 'Pengumuman berhasil ditambahkan!');
@@ -70,6 +95,14 @@ class PengumumanController extends Controller
 
         $pengumuman->update($data);
 
+        $this->logger->log(
+            $request->user(),
+            'pengumuman.updated',
+            "Pengumuman '{$pengumuman->judul}' diperbarui",
+            $pengumuman,
+            ['status' => $pengumuman->status]
+        );
+
         return redirect()->route('admin.pengumuman.index')
             ->with('success', 'Pengumuman berhasil diperbarui!');
     }
@@ -85,6 +118,13 @@ class PengumumanController extends Controller
             }
         }
 
+        $this->logger->log(
+            request()->user(),
+            'pengumuman.deleted',
+            "Pengumuman '{$pengumuman->judul}' dihapus",
+            $pengumuman
+        );
+
         $pengumuman->delete();
 
         return redirect()->route('admin.pengumuman.index')
@@ -99,6 +139,14 @@ class PengumumanController extends Controller
             'approved_at' => null,
         ]);
 
+        $this->logger->log(
+            $request->user(),
+            'pengumuman.submitted',
+            "Pengumuman '{$pengumuman->judul}' diajukan",
+            $pengumuman,
+            ['status' => $pengumuman->status]
+        );
+
         return back()->with('success', 'Pengumuman diajukan untuk persetujuan.');
     }
 
@@ -111,6 +159,14 @@ class PengumumanController extends Controller
             'approved_by' => $request->user()->id,
             'approved_at' => now(),
         ]);
+
+        $this->logger->log(
+            $request->user(),
+            'pengumuman.approved',
+            "Pengumuman '{$pengumuman->judul}' disetujui",
+            $pengumuman,
+            ['status' => $pengumuman->status]
+        );
 
         return back()->with('success', 'Pengumuman telah disetujui dan dipublikasikan.');
     }

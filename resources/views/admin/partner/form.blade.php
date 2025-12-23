@@ -88,6 +88,14 @@
                 <input class="form-check-input" type="checkbox" role="switch" id="is_active" name="is_active" value="1" {{ old('is_active', $partner->is_active ?? true) ? 'checked' : '' }}>
                 <label class="form-check-label" for="is_active">Tampilkan di halaman utama</label>
             </div>
+            <div class="mb-3">
+                <label class="form-label fw-bold">Status</label>
+                <select name="status" class="form-select">
+                    @foreach(\App\Models\Partner::statuses() as $key => $label)
+                        <option value="{{ $key }}" @selected(old('status', $partner->status ?? null) === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
 
             <button type="submit" class="btn btn-success"><i class="fas fa-save me-1"></i> Simpan</button>
             <a href="{{ route('admin.partner.index') }}" class="btn btn-secondary">Kembali</a>

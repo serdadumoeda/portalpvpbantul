@@ -52,8 +52,9 @@ class ProfileController extends Controller
         // Update Gambar jika ada
         if ($request->hasFile('gambar')) {
             // Hapus gambar lama (opsional, praktik yang baik)
-            if ($profile->gambar && Storage::exists('public/' . $profile->gambar)) {
-               // Storage::delete('public/' . $profile->gambar);
+            if ($profile->gambar) {
+                $oldPath = str_replace('/storage/', '', $profile->gambar);
+                Storage::disk('public')->delete($oldPath);
             }
             
             // Simpan path gambar
@@ -65,11 +66,11 @@ class ProfileController extends Controller
         $profile->judul = $request->judul;
         if ($isVisiMisi) {
             $profile->konten = json_encode([
-                'visi' => $request->visi_text,
-                'misi' => $request->misi_text,
+                'visi' => strip_tags($request->visi_text, '<p><br><strong><em><ul><ol><li>'),
+                'misi' => strip_tags($request->misi_text, '<p><br><strong><em><ul><ol><li>'),
             ]);
         } else {
-            $profile->konten = $request->konten; // format HTML bebas
+            $profile->konten = strip_tags($request->konten, '<p><br><strong><em><ul><ol><li><a>');
         }
         $profile->save();
 

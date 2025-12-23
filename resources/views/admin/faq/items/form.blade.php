@@ -2,6 +2,7 @@
 
 @php
     $isEdit = $item->exists;
+    $statusOptions = \App\Models\FaqItem::statuses();
 @endphp
 
 @section('content')
@@ -63,6 +64,17 @@
         <textarea name="answer" class="form-control @error('answer') is-invalid @enderror" rows="6">{{ old('answer', $item->answer) }}</textarea>
         @error('answer') <div class="invalid-feedback">{{ $message }}</div> @enderror
         <small class="text-muted">Dapat menggunakan HTML dasar untuk list atau penekanan.</small>
+    </div>
+
+    <div class="mt-3">
+        <label class="form-label">Status</label>
+        <select name="status" class="form-select @error('status') is-invalid @enderror">
+            @foreach($statusOptions as $key => $label)
+                <option value="{{ $key }}" @selected(old('status', $item->status ?? 'draft') === $key)>{{ $label }}</option>
+            @endforeach
+        </select>
+        <small class="text-muted">Instruktur/editor dapat memilih Draft/Pending; Reviewer/Admin dapat langsung memublikasikan.</small>
+        @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
     </div>
 
     <div class="text-end mt-4">

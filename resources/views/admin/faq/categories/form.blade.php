@@ -2,6 +2,7 @@
 
 @php
     $isEdit = $category->exists;
+    $statusOptions = \App\Models\FaqCategory::statuses();
 @endphp
 
 @section('content')
@@ -49,11 +50,22 @@
             <small class="text-muted">Kosongkan untuk otomatis menjadi 0.</small>
             @error('urutan') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
-        <div class="col-md-4 mb-3 d-flex align-items-center">
-            <div class="form-check mt-4">
-                <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" {{ old('is_active', $category->is_active ?? true) ? 'checked' : '' }}>
-                <label class="form-check-label" for="is_active">Aktif</label>
-            </div>
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select @error('status') is-invalid @enderror">
+                @foreach($statusOptions as $key => $label)
+                    <option value="{{ $key }}" @selected(old('status', $category->status ?? 'draft') === $key)>{{ $label }}</option>
+                @endforeach
+            </select>
+            <small class="text-muted">Draft/Pending untuk menunggu review; Reviewer/Admin dapat langsung publikasikan.</small>
+            @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <div class="form-check">
+            <input type="checkbox" class="form-check-input" id="is_active" name="is_active" value="1" {{ old('is_active', $category->is_active ?? true) ? 'checked' : '' }}>
+            <label class="form-check-label" for="is_active">Aktif</label>
         </div>
     </div>
 

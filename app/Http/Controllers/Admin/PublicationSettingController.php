@@ -5,9 +5,14 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\PublicationSetting;
 use Illuminate\Http\Request;
+use App\Services\ActivityLogger;
 
 class PublicationSettingController extends Controller
 {
+    public function __construct(private ActivityLogger $logger)
+    {
+    }
+
     public function edit()
     {
         $setting = PublicationSetting::first() ?? new PublicationSetting();
@@ -39,9 +44,20 @@ class PublicationSettingController extends Controller
 
         $setting = PublicationSetting::first() ?? new PublicationSetting();
         if ($request->hasFile('hero_image')) {
+            if ($setting->hero_image) {
+                $oldPath = str_replace('/storage/', '', $setting->hero_image);
+                Storage::disk('public')->delete($oldPath);
+            }
             $data['hero_image'] = '/storage/' . $request->file('hero_image')->store('publications', 'public');
         }
         $setting->fill($data)->save();
+
+        $this->logger->log(
+            $request->user(),
+            'publication_setting.updated',
+            'Pengaturan publikasi diperbarui',
+            $setting
+        );
 
         return redirect()->route('admin.publication.settings')->with('success', 'Pengaturan publikasi disimpan.');
     }

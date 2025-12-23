@@ -18,7 +18,9 @@
         'md' => 'px-4 py-2',
         'lg' => 'btn-lg px-4 py-2',
     ];
-    $classes = trim("$base {$variants[$variant] ?? $variants['primary']} {$sizes[$size] ?? $sizes['md']}");
+    $variantClass = isset($variants[$variant]) ? $variants[$variant] : $variants['primary'];
+    $sizeClass = isset($sizes[$size]) ? $sizes[$size] : $sizes['md'];
+    $classes = trim($base . ' ' . $variantClass . ' ' . $sizeClass);
 @endphp
 
 @if($as === 'a' && $href)

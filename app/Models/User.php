@@ -7,6 +7,7 @@ use App\Traits\HasUuid;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\CourseEnrollment;
 use App\Models\ForumPost;
 use App\Models\ForumTopic;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -127,5 +128,10 @@ class User extends Authenticatable
     public function forumPosts(): HasMany
     {
         return $this->hasMany(ForumPost::class);
+    }
+
+    public function enrollments(): HasMany
+    {
+        return $this->hasMany(CourseEnrollment::class);
     }
 }

@@ -103,6 +103,14 @@
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>
+            <div class="mb-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    @foreach(\App\Models\Program::statuses() as $key => $label)
+                        <option value="{{ $key }}" @selected(old('status') === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
 
             <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Simpan Program</button>
             <a href="{{ route('admin.program.index') }}" class="btn btn-secondary">Batal</a>

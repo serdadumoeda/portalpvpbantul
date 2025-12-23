@@ -30,4 +30,17 @@ class UserPolicy
     {
         return $user->hasPermission('manage-users');
     }
+
+    public function impersonate(User $user, User $model): bool
+    {
+        if ($user->is($model)) {
+            return false;
+        }
+
+        if ($model->hasRole('superadmin') && ! $user->hasRole('superadmin')) {
+            return false;
+        }
+
+        return $user->hasPermission('impersonate-users');
+    }
 }

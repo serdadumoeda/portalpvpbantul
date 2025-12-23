@@ -5,6 +5,8 @@ namespace App\Providers;
 use Illuminate\Support\Facades\View;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
+use App\Models\CourseEnrollment;
+use App\Observers\CourseEnrollmentObserver;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -30,5 +32,7 @@ class AppServiceProvider extends ServiceProvider
         View::composer('layouts.admin', function ($view) {
             $view->with('groupActive', fn ($patterns) => collect((array) $patterns)->contains(fn ($pattern) => request()->routeIs($pattern)));
         });
+
+        CourseEnrollment::observe(CourseEnrollmentObserver::class);
     }
 }

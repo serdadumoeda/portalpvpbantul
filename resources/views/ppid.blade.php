@@ -193,6 +193,13 @@
                     <input type="file" name="tanda_tangan" class="form-control bg-light" accept=".jpg,.jpeg,.png,.pdf">
                     <small class="text-muted">Format JPG/PNG/PDF dengan ukuran maksimal 2 MB.</small>
                 </div>
+                <div class="mt-4">
+                    <label class="form-label">Verifikasi Keamanan</label>
+                    <div class="d-flex gap-3 align-items-center">
+                        <span class="fw-semibold">{{ $captchaQuestion ?? '' }}</span>
+                        <input type="number" name="captcha_answer" class="form-control bg-light" style="max-width: 180px;" required>
+                    </div>
+                </div>
 
                 <div class="text-end mt-4">
                     <button class="btn btn-success px-4 py-2">Ajukan Permohonan</button>

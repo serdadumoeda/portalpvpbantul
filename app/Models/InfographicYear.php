@@ -20,10 +20,16 @@ class InfographicYear extends Model
         'hero_button_link',
         'urutan',
         'is_active',
+        'status',
+        'approved_by',
+        'approved_at',
+        'published_at',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'approved_at' => 'datetime',
+        'published_at' => 'datetime',
     ];
 
     public function metrics()
@@ -39,5 +45,14 @@ class InfographicYear extends Model
     public function embeds()
     {
         return $this->hasMany(InfographicEmbed::class)->orderBy('urutan');
+    }
+
+    public static function statuses(): array
+    {
+        return [
+            'draft' => 'Draft',
+            'pending' => 'Menunggu Review',
+            'published' => 'Terpublikasi',
+        ];
     }
 }

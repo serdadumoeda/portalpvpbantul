@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\PpidRequest;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Http\Response;
 
 class PpidRequestController extends Controller
 {
@@ -21,12 +23,41 @@ class PpidRequestController extends Controller
     public function destroy(PpidRequest $ppid_request)
     {
         if ($ppid_request->tanda_tangan) {
-            $path = public_path(ltrim($ppid_request->tanda_tangan, '/'));
-            if (file_exists($path)) {
-                @unlink($path);
-            }
+            $storedPath = $this->normalizePath($ppid_request->tanda_tangan);
+            Storage::disk($storedPath['disk'])->delete($storedPath['path']);
         }
         $ppid_request->delete();
         return redirect()->route('admin.ppid-request.index')->with('success', 'Permohonan dihapus.');
+    }
+
+    public function download(PpidRequest $ppid_request)
+    {
+        if (! $ppid_request->tanda_tangan) {
+            abort(404);
+        }
+
+        $target = $this->normalizePath($ppid_request->tanda_tangan);
+
+        if (! Storage::disk($target['disk'])->exists($target['path'])) {
+            abort(404);
+        }
+
+        $mimeName = basename($target['path']);
+        return Storage::disk($target['disk'])->download($target['path'], $mimeName);
+    }
+
+    private function normalizePath(string $raw): array
+    {
+        $clean = ltrim($raw, '/');
+        if (str_starts_with($clean, 'storage/')) {
+            $clean = substr($clean, strlen('storage/'));
+        }
+
+        // default baru: disimpan di disk lokal (non-public). Lama: di public.
+        if (Storage::exists($clean)) {
+            return ['disk' => config('filesystems.default', 'local'), 'path' => $clean];
+        }
+
+        return ['disk' => 'public', 'path' => $clean];
     }
 }

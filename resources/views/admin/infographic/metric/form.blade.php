@@ -47,6 +47,14 @@
                     @error('urutan') <div class="invalid-feedback">{{ $message }}</div> @enderror
                 </div>
             </div>
+            <div class="mt-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    @foreach(\App\Models\InfographicMetric::statuses() as $key => $label)
+                        <option value="{{ $key }}" @selected(old('status', $metric->status ?? null) === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
             <div class="mt-4">
                 <button class="btn btn-primary">Simpan</button>
             </div>

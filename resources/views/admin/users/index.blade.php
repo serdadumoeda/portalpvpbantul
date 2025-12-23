@@ -36,6 +36,14 @@
                             @endif
                         </td>
                         <td class="text-end">
+                            @can('impersonate', $user)
+                                <form action="{{ route('admin.impersonate.start', $user) }}" method="POST" class="d-inline me-2" onsubmit="return confirm('Masuk sebagai {{ $user->name }}?')">
+                                    @csrf
+                                    <button class="btn btn-sm btn-outline-secondary">
+                                        <i class="fas fa-user-secret"></i> Impersonate
+                                    </button>
+                                </form>
+                            @endcan
                             @can('update', $user)
                                 <a href="{{ route('admin.users.edit', $user) }}" class="btn btn-sm btn-outline-primary me-2">
                                     <i class="fas fa-edit"></i> Edit

@@ -22,6 +22,14 @@
                 </div>
                 <input type="file" name="gambar" class="form-control" accept="image/*">
             </div>
+            <div class="mb-3">
+                <label class="form-label">Status</label>
+                <select name="status" class="form-select">
+                    @foreach(\App\Models\Galeri::statuses() as $key => $label)
+                        <option value="{{ $key }}" @selected($galeri->status === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
 
             <button type="submit" class="btn btn-primary">Simpan Perubahan</button>
             <a href="{{ route('admin.galeri.index') }}" class="btn btn-secondary">Batal</a>

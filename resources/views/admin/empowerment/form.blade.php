@@ -36,6 +36,14 @@
                     </div>
                 </div>
             </div>
+            <div class="mb-3 mt-2">
+                <label class="form-label fw-bold">Status</label>
+                <select name="status" class="form-select">
+                    @foreach(\App\Models\Empowerment::statuses() as $key => $label)
+                        <option value="{{ $key }}" @selected(old('status', $item->status ?? null) === $key)>{{ $label }}</option>
+                    @endforeach
+                </select>
+            </div>
             <button type="submit" class="btn btn-success mt-3">Simpan</button>
             <a href="{{ route('admin.empowerment.index') }}" class="btn btn-secondary mt-3">Kembali</a>
         </form>

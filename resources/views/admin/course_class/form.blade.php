@@ -1,0 +1,89 @@
+@extends('layouts.admin')
+
+@php
+    $statusOptions = \App\Models\CourseClass::statuses();
+@endphp
+
+@section('content')
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="mb-0">{{ $course->exists ? 'Edit' : 'Tambah' }} Kelas</h4>
+        <small class="text-muted">Atur data kelas, prasyarat, kompetensi, dan status publikasi.</small>
+    </div>
+    <a href="{{ route('admin.course-class.index') }}" class="btn btn-outline-secondary btn-sm">Kembali</a>
+</div>
+
+<form action="{{ $action }}" method="POST" class="bg-white rounded shadow-sm p-4" novalidate>
+    @csrf
+    @if($method === 'PUT') @method('PUT') @endif
+
+    <div class="mb-3">
+        <label class="form-label">Judul</label>
+        <input type="text" name="title" class="form-control @error('title') is-invalid @enderror" value="{{ old('title', $course->title) }}" required maxlength="255">
+        @error('title') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label">Deskripsi</label>
+        <textarea name="description" rows="4" class="form-control @error('description') is-invalid @enderror">{{ old('description', $course->description) }}</textarea>
+        @error('description') <div class="invalid-feedback">{{ $message }}</div> @enderror
+    </div>
+
+    <div class="row g-3">
+        <div class="col-md-4">
+            <label class="form-label">Format</label>
+            <select name="format" class="form-select @error('format') is-invalid @enderror">
+                <option value="sinkron" @selected(old('format', $course->format) === 'sinkron')>Sinkron</option>
+                <option value="asinkron" @selected(old('format', $course->format) === 'asinkron')>Asinkron</option>
+            </select>
+            @error('format') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Instruktur (opsional)</label>
+            <input type="text" disabled class="form-control" value="{{ $course->instructor?->name ?? 'Setel di relasi user' }}">
+            <small class="text-muted">Gunakan relasi user untuk menetapkan instruktur.</small>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Status</label>
+            <select name="status" class="form-select @error('status') is-invalid @enderror">
+                @foreach($statusOptions as $key => $label)
+                    <option value="{{ $key }}" @selected(old('status', $course->status ?? 'draft') === $key)>{{ $label }}</option>
+                @endforeach
+            </select>
+            <small class="text-muted">Draft/Pending untuk review; Reviewer/Admin dapat langsung publikasi.</small>
+            @error('status') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+    </div>
+
+    <div class="row g-3 mt-3">
+        <div class="col-md-6">
+            <label class="form-label">Prasyarat (pisahkan baris)</label>
+            <textarea name="prerequisites" rows="3" class="form-control @error('prerequisites') is-invalid @enderror" placeholder="Skill/alat yang wajib dikuasai">{{ old('prerequisites', $course->prerequisites ? implode(PHP_EOL, $course->prerequisites) : null) }}</textarea>
+            @error('prerequisites') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Kompetensi/Unit (pisahkan baris)</label>
+            <textarea name="competencies" rows="3" class="form-control @error('competencies') is-invalid @enderror" placeholder="Unit SKKNI/KKNI atau kompetensi target">{{ old('competencies', $course->competencies ? implode(PHP_EOL, $course->competencies) : null) }}</textarea>
+            @error('competencies') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+    </div>
+
+    <div class="row g-3 mt-3">
+        <div class="col-md-6">
+            <label class="form-label">Badge (opsional)</label>
+            <input type="text" name="badge" class="form-control @error('badge') is-invalid @enderror" value="{{ old('badge', $course->badge) }}" maxlength="255">
+            @error('badge') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+        <div class="col-md-6 d-flex align-items-center">
+            <div class="form-check mt-4">
+                <input type="checkbox" class="form-check-input" name="is_active" value="1" {{ old('is_active', $course->is_active ?? true) ? 'checked' : '' }}>
+                <label class="form-check-label">Aktif</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-end mt-4">
+        <button class="btn btn-primary px-4">{{ $course->exists ? 'Update' : 'Simpan' }}</button>
+    </div>
+</form>
+@endsection
