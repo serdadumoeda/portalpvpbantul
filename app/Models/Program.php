@@ -11,6 +11,7 @@ class Program extends Model
     use HasUuid;
 
     protected $fillable = [
+        'external_id',
         'judul',
         'deskripsi',
         'gambar',

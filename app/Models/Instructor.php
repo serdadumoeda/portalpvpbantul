@@ -11,6 +11,7 @@ class Instructor extends Model
     use HasUuid;
 
     protected $fillable = [
+        'external_id',
         'nama',
         'keahlian',
         'deskripsi',

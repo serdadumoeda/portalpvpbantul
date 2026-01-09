@@ -147,39 +147,20 @@
             <div class="auth-card">
                 <div class="text-center mb-4"></div>
 
-                @if($errors->any())
-                    <div class="alert alert-danger text-center small p-2">
-                        {{ $errors->first() }}
-                    </div>
+                <div class="mb-4 text-center">
+                    <h4 class="fw-bold mb-1">Registrasi melalui SIAP Kerja</h4>
+                    <p class="text-muted small mb-0">Pendaftaran manual dinonaktifkan. Gunakan akun SIAP Kerja untuk mengakses portal.</p>
+                </div>
+                @php
+                    $hasSso = config('services.siapkerja.client_id') && config('services.siapkerja.client_secret') && config('services.siapkerja.redirect');
+                @endphp
+                @if($hasSso)
+                    <a href="{{ route('sso.siapkerja.redirect') }}" class="btn btn-primary w-100 py-3">Masuk dengan Akun SIAP Kerja</a>
+                @else
+                    <div class="alert alert-warning text-center small">Konfigurasi SIAP Kerja belum tersedia. Hubungi admin untuk mengisi kredensial.</div>
                 @endif
-
-                <form action="{{ route('register.post') }}" method="POST" class="vstack gap-3">
-                    @csrf
-                    <div class="input-icon">
-                        <label class="form-label fw-semibold">Nama</label>
-                        <span class="icon"><i class="fas fa-user"></i></span>
-                        <input type="text" name="name" class="form-control" value="{{ old('name') }}" required>
-                    </div>
-                    <div class="input-icon">
-                        <label class="form-label fw-semibold">Email</label>
-                        <span class="icon"><i class="fas fa-envelope"></i></span>
-                        <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
-                    </div>
-                    <div class="input-icon">
-                        <label class="form-label fw-semibold">Password</label>
-                        <span class="icon"><i class="fas fa-lock"></i></span>
-                        <input type="password" name="password" class="form-control" required>
-                    </div>
-                    <div class="input-icon">
-                        <label class="form-label fw-semibold">Konfirmasi Password</label>
-                        <span class="icon"><i class="fas fa-lock"></i></span>
-                        <input type="password" name="password_confirmation" class="form-control" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 py-2">DAFTAR</button>
-                </form>
-
                 <div class="text-center mt-3 help-links">
-                    <a href="{{ route('login') }}" class="text-decoration-none small">Sudah punya akun? Masuk</a>
+                    <a href="{{ route('login') }}" class="text-decoration-none small">Kembali ke halaman login</a>
                 </div>
             </div>
         </div>

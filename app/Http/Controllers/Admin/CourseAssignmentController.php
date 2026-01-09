@@ -156,6 +156,11 @@ class CourseAssignmentController extends Controller
             'status' => 'nullable|in:' . implode(',', array_keys(CourseAssignment::statuses())),
             'quiz_schema' => 'nullable|string',
             'quiz_settings' => 'nullable|string',
+            'require_token' => 'nullable|boolean',
+            'exam_token' => 'nullable|string|max:50',
+            'exam_start_at' => 'nullable|date',
+            'exam_end_at' => 'nullable|date|after:exam_start_at',
+            'auto_submit' => 'nullable|boolean',
         ]);
 
         $data['is_active'] = $request->boolean('is_active');
@@ -190,6 +195,9 @@ class CourseAssignmentController extends Controller
             $data['quiz_schema'] = null;
             $data['quiz_settings'] = null;
         }
+
+        $data['require_token'] = $request->boolean('require_token');
+        $data['auto_submit'] = $request->boolean('auto_submit');
 
         return $data;
     }

@@ -71,6 +71,8 @@ use App\Http\Controllers\Admin\CourseEnrollmentImportController;
 use App\Http\Controllers\Admin\CourseAnnouncementController;
 use App\Http\Controllers\Admin\TalentPoolController;
 use App\Http\Controllers\Admin\SchedulePreviewController;
+use App\Http\Controllers\Admin\InterviewSessionController;
+use App\Http\Controllers\Admin\SkillhubSyncController;
 use App\Http\Controllers\Instructor\InstructorScheduleController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -119,6 +121,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/my/classes/{class}/forum/{topic}', [\App\Http\Controllers\CourseForumController::class, 'show'])->name('participant.class.forum.show');
     Route::post('/my/classes/{class}/forum/{topic}/post', [\App\Http\Controllers\CourseForumController::class, 'storePost'])->name('participant.class.forum.post')->middleware('throttle:20,1');
     Route::post('/my/forum/post/{post}/report', [\App\Http\Controllers\CourseForumController::class, 'reportPost'])->name('participant.class.forum.report')->middleware('throttle:8,1');
+    Route::get('/my/interviews', [\App\Http\Controllers\ParticipantInterviewController::class, 'index'])->name('participant.interviews');
 });
 
 Route::get('/pengumuman', [HomeController::class, 'pengumumanIndex'])->name('pengumuman.index');
@@ -173,7 +176,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::resource('berita', BeritaController::class);
     Route::patch('berita/{berita}/submit', [BeritaController::class, 'submit'])->name('berita.submit');
     Route::patch('berita/{berita}/approve', [BeritaController::class, 'approve'])->name('berita.approve')->middleware('permission:approve-content');
-    Route::resource('program', ProgramController::class); 
+    Route::resource('program', ProgramController::class)->only(['index', 'show', 'edit']); 
     Route::resource('galeri', GaleriController::class);   
     Route::resource('pengumuman', PengumumanController::class);
     Route::patch('pengumuman/{pengumuman}/submit', [PengumumanController::class, 'submit'])->name('pengumuman.submit')->middleware('permission:approve-content');
@@ -185,6 +188,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::resource('instructor', InstructorController::class)->except(['show']);
     Route::resource('benefit', BenefitController::class)->except(['show']);
     Route::resource('flow', FlowStepController::class)->except(['show']);
+    Route::post('skillhub/sync', SkillhubSyncController::class)->name('skillhub.sync');
     Route::get('alumni-tracer/dashboard', [AlumniTracerController::class, 'dashboard'])->name('alumni-tracer.dashboard')->middleware('permission:manage-users');
     Route::get('alumni-tracer/export', [AlumniTracerController::class, 'export'])->name('alumni-tracer.export')->middleware(['permission:manage-users']);
     Route::resource('alumni-tracer', AlumniTracerController::class)->only(['index','show','destroy'])->middleware('permission:manage-users');
@@ -192,7 +196,7 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::patch('alumni-tracer/{alumni_tracer}/verify', [AlumniTracerController::class, 'verify'])->name('alumni-tracer.verify')->middleware('permission:manage-users');
     Route::resource('testimonial', TestimonialController::class)->except(['show']);
     Route::resource('training-service', TrainingServiceController::class)->except(['show']);
-    Route::resource('training-schedule', TrainingScheduleController::class)->except(['show']);
+    Route::resource('training-schedule', TrainingScheduleController::class)->only(['index', 'show', 'edit']);
     Route::resource('empowerment', EmpowermentController::class)->except(['show']);
     Route::resource('productivity', ProductivityController::class)->except(['show']);
     Route::resource('lowongan', JobVacancyController::class)->except(['show']);
@@ -245,6 +249,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::get('course-attendance/export/csv', [CourseAttendanceController::class, 'exportCsv'])->name('course-attendance.export.csv');
     Route::get('course-session/{course_session}/qr', [CourseSessionController::class, 'qr'])->name('course-session.qr');
     Route::get('course-session/{course_session}/cards', [CourseSessionController::class, 'cards'])->name('course-session.cards');
+    Route::resource('interview-session', InterviewSessionController::class);
+    Route::post('interview-session/{interview_session}/allocations', [InterviewSessionController::class, 'storeAllocation'])->name('interview-session.allocations.store');
+    Route::patch('interview-allocations/{allocation}/status', [InterviewSessionController::class, 'updateAllocationStatus'])->name('interview-allocations.status');
+    Route::post('interview-allocations/{allocation}/score', [InterviewSessionController::class, 'storeScore'])->name('interview-allocations.score');
     Route::get('ops-dashboard', \App\Http\Controllers\Admin\OpsDashboardController::class)->name('ops-dashboard');
     Route::resource('course-submission', CourseSubmissionController::class)->only(['index', 'edit', 'update', 'destroy']);
     Route::get('course-submission/export/csv', [CourseSubmissionController::class, 'exportCsv'])->name('course-submission.export.csv');

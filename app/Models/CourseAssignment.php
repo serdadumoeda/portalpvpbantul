@@ -31,6 +31,11 @@ class CourseAssignment extends Model
         'published_at',
         'quiz_schema',
         'quiz_settings',
+        'require_token',
+        'exam_token',
+        'exam_start_at',
+        'exam_end_at',
+        'auto_submit',
     ];
 
     protected $casts = [
@@ -41,6 +46,10 @@ class CourseAssignment extends Model
         'rubric' => 'array',
         'quiz_schema' => 'array',
         'quiz_settings' => 'array',
+        'require_token' => 'boolean',
+        'exam_start_at' => 'datetime',
+        'exam_end_at' => 'datetime',
+        'auto_submit' => 'boolean',
     ];
 
     public static function statuses(): array

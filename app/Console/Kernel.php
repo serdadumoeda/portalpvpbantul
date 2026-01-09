@@ -3,6 +3,7 @@
 namespace App\Console;
 
 use App\Jobs\QueueHeartbeatJob;
+use App\Jobs\SyncParticipantsJob;
 use Illuminate\Console\Scheduling\Schedule;
 use Illuminate\Foundation\Console\Kernel as ConsoleKernel;
 
@@ -17,6 +18,9 @@ class Kernel extends ConsoleKernel
         $schedule->job(new QueueHeartbeatJob())->everyFiveMinutes();
         // Reminder course (tugas, sesi, grading, survey pasca kelas, rekaman)
         $schedule->command('course:reminders')->hourly();
+        // Sinkronisasi data pusat Skillhub
+        $schedule->command('skillhub:sync')->hourly();
+        $schedule->job(new SyncParticipantsJob())->hourlyAt(15);
     }
 
     /**

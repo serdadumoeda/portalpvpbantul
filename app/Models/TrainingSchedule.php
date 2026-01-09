@@ -11,6 +11,8 @@ class TrainingSchedule extends Model
     use HasUuid;
 
     protected $fillable = [
+        'external_id',
+        'batch_id',
         'judul',
         'penyelenggara',
         'lokasi',

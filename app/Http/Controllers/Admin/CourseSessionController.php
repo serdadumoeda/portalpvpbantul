@@ -96,7 +96,7 @@ class CourseSessionController extends Controller
         abort_unless($course_session->attendance_code, 404);
         $enrollments = \App\Models\CourseEnrollment::with('user')
             ->where('course_class_id', $course_session->course_class_id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'approved'])
             ->get();
 
         return view('admin.course_session.cards', [

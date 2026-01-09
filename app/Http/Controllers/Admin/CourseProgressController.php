@@ -22,7 +22,7 @@ class CourseProgressController extends Controller
             $selectedClass = CourseClass::find($classFilter);
             $records = CourseEnrollment::with('user')
                 ->where('course_class_id', $classFilter)
-                ->where('status', 'active')
+                ->whereIn('status', ['active', 'approved'])
                 ->get()
                 ->map(function ($enroll) use ($classFilter) {
                     $attended = CourseAttendance::whereHas('session', fn ($q) => $q->where('course_class_id', $classFilter))

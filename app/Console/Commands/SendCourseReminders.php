@@ -50,7 +50,7 @@ class SendCourseReminders extends Command
             ->chunk(50, function ($assignments) use ($now) {
                 foreach ($assignments as $assignment) {
                     $enrollments = CourseEnrollment::where('course_class_id', $assignment->course_class_id)
-                        ->where('status', 'active')
+                        ->whereIn('status', ['active', 'approved'])
                         ->get();
                     foreach ($enrollments as $enroll) {
                         $hasSubmitted = CourseSubmission::where('course_assignment_id', $assignment->id)
@@ -86,7 +86,7 @@ class SendCourseReminders extends Command
             ->chunk(50, function ($sessions) {
                 foreach ($sessions as $session) {
                     $enrollments = CourseEnrollment::where('course_class_id', $session->course_class_id)
-                        ->where('status', 'active')
+                        ->whereIn('status', ['active', 'approved'])
                         ->get();
                     foreach ($enrollments as $enroll) {
                         if (! $enroll->user) {

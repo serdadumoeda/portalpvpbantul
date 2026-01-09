@@ -53,6 +53,11 @@ return [
         'client_secret' => env('SIAPKERJA_CLIENT_SECRET'),
         'redirect' => env('SIAPKERJA_REDIRECT_URI'),
         'scope' => env('SIAPKERJA_SCOPE', 'basic email'),
+        'api_base' => env('SIAPKERJA_API_BASE', 'https://skillhub.kemnaker.go.id/api'),
+        'token_url' => env('SIAPKERJA_TOKEN_URL', 'https://account.kemnaker.go.id/api/v1/tokens'),
+        'admin_client_id' => env('SIAPKERJA_ADMIN_CLIENT_ID', env('SIAPKERJA_CLIENT_ID')),
+        'admin_client_secret' => env('SIAPKERJA_ADMIN_CLIENT_SECRET', env('SIAPKERJA_CLIENT_SECRET')),
+        'admin_scope' => env('SIAPKERJA_ADMIN_SCOPE', 'client'),
     ],
 
 ];

@@ -96,7 +96,7 @@ class CourseForumController extends Controller
     {
         $enrollment = CourseEnrollment::where('user_id', $user->id)
             ->where('course_class_id', $classId)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'approved'])
             ->first();
 
         if (! $enrollment) {

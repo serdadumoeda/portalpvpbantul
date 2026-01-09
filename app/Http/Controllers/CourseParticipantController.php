@@ -215,6 +215,22 @@ class CourseParticipantController extends Controller
             abort(404, 'Quiz belum dikonfigurasi.');
         }
 
+        // window pemeriksaan
+        if ($assignment->exam_start_at && now()->lt($assignment->exam_start_at)) {
+            return back()->with('error', 'Ujian belum dibuka.');
+        }
+        if ($assignment->exam_end_at && now()->gt($assignment->exam_end_at) && ! $assignment->auto_submit) {
+            return back()->with('error', 'Waktu ujian sudah ditutup.');
+        }
+
+        // token
+        if ($assignment->require_token) {
+            $request->validate(['exam_token' => 'required|string']);
+            if (! hash_equals($assignment->exam_token ?? '', $request->input('exam_token'))) {
+                return back()->with('error', 'Token ujian tidak valid.')->withInput();
+            }
+        }
+
         $maxAttempts = $assignment->quiz_settings['max_attempts'] ?? 1;
         $attemptCount = CourseSubmission::where('course_assignment_id', $assignment->id)
             ->where('user_id', $request->user()->id)
@@ -226,7 +242,7 @@ class CourseParticipantController extends Controller
 
         $attemptData = $this->getQuizAttemptData($request, $assignment);
         $expiresAt = $attemptData['expires_at'] ?? null;
-        if ($expiresAt && now()->greaterThan($expiresAt)) {
+        if ($expiresAt && now()->greaterThan($expiresAt) && ! $assignment->auto_submit) {
             return back()->with('error', 'Waktu quiz sudah habis.')->withInput();
         }
         if ($assignment->due_at && $assignment->late_policy === 'no-accept' && now()->greaterThan($assignment->due_at)) {
@@ -297,6 +313,17 @@ class CourseParticipantController extends Controller
 
         $this->clearQuizAttemptData($request, $assignment);
 
+        // simpan skor ke enrollment sebagai written_score (skala 0-100)
+        $enrollment = CourseEnrollment::where('user_id', $request->user()->id)
+            ->where('course_class_id', $assignment->course_class_id)
+            ->first();
+        if ($enrollment) {
+            $percentScore = $maxScore > 0 ? round(($score / $maxScore) * 100, 2) : $score;
+            $enrollment->written_score = $percentScore;
+            $enrollment->save();
+            $enrollment->updateFinalScore();
+        }
+
         return redirect()->route('participant.assignments.show', $assignment)->with('success', 'Quiz terkirim dan dinilai otomatis.');
     }
 
@@ -319,6 +346,9 @@ class CourseParticipantController extends Controller
         $limitMinutes = $assignment->quiz_settings['time_limit_minutes'] ?? null;
         if ($limitMinutes) {
             $expiresAt = $startedAt->copy()->addMinutes($limitMinutes);
+        }
+        if ($assignment->exam_end_at) {
+            $expiresAt = $expiresAt ? $expiresAt->min($assignment->exam_end_at) : $assignment->exam_end_at;
         }
 
         $payload = [
@@ -399,7 +429,7 @@ class CourseParticipantController extends Controller
         }
 
         return CourseEnrollment::where('user_id', $user->id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'approved', 'completed'])
             ->pluck('course_class_id')
             ->toArray();
     }
@@ -408,7 +438,7 @@ class CourseParticipantController extends Controller
     {
         $enrolled = CourseEnrollment::where('user_id', $user->id)
             ->where('course_class_id', $classId)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'approved', 'completed'])
             ->exists();
 
         abort_unless($enrolled, 403);

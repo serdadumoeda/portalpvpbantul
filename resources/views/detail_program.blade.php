@@ -2,7 +2,8 @@
 
 @section('content')
 @php
-    $registrationUrl = $program->pendaftaran_link ?: 'https://siapkerja.kemnaker.go.id/app/pelatihan';
+    $skillhubRegistration = $program->external_id ? "https://skillhub.kemnaker.go.id/pelatihan/{$program->external_id}/daftar" : null;
+    $registrationUrl = $skillhubRegistration ?: ($program->pendaftaran_link ?: 'https://skillhub.kemnaker.go.id/app/pelatihan');
     $biayaLabel = $program->biaya_label ?: 'Gratis';
     $sertifikatLabel = $program->sertifikat_label ?: 'Sertifikat Mengikuti Pelatihan';
     $bahasaLabel = $program->bahasa_label ?: 'Bahasa Indonesia';

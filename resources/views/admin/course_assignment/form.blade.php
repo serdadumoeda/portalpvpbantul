@@ -80,6 +80,24 @@
             @error('max_score') <div class="invalid-feedback">{{ $message }}</div> @enderror
         </div>
         <div class="col-md-4">
+            <label class="form-label">Token Ujian (opsional)</label>
+            <input type="text" name="exam_token" class="form-control @error('exam_token') is-invalid @enderror" value="{{ old('exam_token', $assignment->exam_token) }}" placeholder="Isi jika butuh token harian">
+        <div class="col-md-4">
+            <label class="form-label">Token Ujian (opsional)</label>
+            <input type="text" name="exam_token" class="form-control @error('exam_token') is-invalid @enderror" value="{{ old('exam_token', $assignment->exam_token) }}" placeholder="Isi jika butuh token harian">
+            @error('exam_token') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" name="require_token" value="1" id="requireToken" @checked(old('require_token', $assignment->require_token))>
+                <label class="form-check-label" for="requireToken">Wajibkan token untuk mulai ujian</label>
+            </div>
+        </div>
+            @error('exam_token') <div class="invalid-feedback">{{ $message }}</div> @enderror
+            <div class="form-check mt-2">
+                <input class="form-check-input" type="checkbox" name="require_token" value="1" id="requireToken" @checked(old('require_token', $assignment->require_token))>
+                <label class="form-check-label" for="requireToken">Wajibkan token untuk mulai ujian</label>
+            </div>
+        </div>
+        <div class="col-md-4">
             <label class="form-label">Late Policy</label>
             <select name="late_policy" class="form-select @error('late_policy') is-invalid @enderror">
                 <option value="no-accept" @selected(old('late_policy', $assignment->late_policy) === 'no-accept')>Tidak terima setelah due</option>
@@ -97,10 +115,36 @@
             @error('penalty_percent') <div class="invalid-feedback">{{ $message }}</div> @enderror
             <small class="text-muted">Hanya dipakai jika kebijakan penalti.</small>
         </div>
+        <div class="col-md-4">
+            <label class="form-label">Ujian dibuka</label>
+            <input type="datetime-local" name="exam_start_at" class="form-control @error('exam_start_at') is-invalid @enderror" value="{{ old('exam_start_at', optional($assignment->exam_start_at)->format('Y-m-d\\TH:i')) }}">
+            @error('exam_start_at') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Ujian ditutup</label>
+            <input type="datetime-local" name="exam_end_at" class="form-control @error('exam_end_at') is-invalid @enderror" value="{{ old('exam_end_at', optional($assignment->exam_end_at)->format('Y-m-d\\TH:i')) }}">
+            @error('exam_end_at') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Ujian dibuka</label>
+            <input type="datetime-local" name="exam_start_at" class="form-control @error('exam_start_at') is-invalid @enderror" value="{{ old('exam_start_at', optional($assignment->exam_start_at)->format('Y-m-d\TH:i')) }}">
+            @error('exam_start_at') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Ujian ditutup</label>
+            <input type="datetime-local" name="exam_end_at" class="form-control @error('exam_end_at') is-invalid @enderror" value="{{ old('exam_end_at', optional($assignment->exam_end_at)->format('Y-m-d\TH:i')) }}">
+            @error('exam_end_at') <div class="invalid-feedback">{{ $message }}</div> @enderror
+        </div>
         <div class="col-md-4 d-flex align-items-center">
             <div class="form-check mt-4">
                 <input type="checkbox" class="form-check-input" name="is_active" value="1" {{ old('is_active', $assignment->is_active ?? true) ? 'checked' : '' }}>
                 <label class="form-check-label">Aktif</label>
+        <div class="col-md-4 d-flex align-items-center">
+            <div class="form-check mt-4 ms-3">
+                <input class="form-check-input" type="checkbox" name="auto_submit" value="1" id="autoSubmit" @checked(old('auto_submit', $assignment->auto_submit))>
+                <label class="form-check-label" for="autoSubmit">Auto-submit saat waktu habis</label>
+            </div>
+        </div>
             </div>
         </div>
     </div>

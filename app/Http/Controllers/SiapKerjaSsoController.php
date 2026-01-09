@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\SiteSetting;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,9 +23,9 @@ class SiapKerjaSsoController extends Controller
 
         $query = http_build_query([
             'response_type' => 'code',
-            'client_id' => config('services.siapkerja.client_id'),
-            'redirect_uri' => config('services.siapkerja.redirect'),
-            'scope' => config('services.siapkerja.scope', 'basic email'),
+            'client_id' => $this->setting('client_id', config('services.siapkerja.client_id')),
+            'redirect_uri' => $this->setting('redirect', config('services.siapkerja.redirect')),
+            'scope' => $this->setting('scope', config('services.siapkerja.scope', 'basic email')),
             'state' => $state,
         ]);
 
@@ -49,12 +50,12 @@ class SiapKerjaSsoController extends Controller
 
         $tokenResponse = Http::asJson()
             ->acceptJson()
-            ->post(self::TOKEN_URL, [
-                'client_id' => config('services.siapkerja.client_id'),
-                'client_secret' => config('services.siapkerja.client_secret'),
+            ->post($this->setting('token_url', config('services.siapkerja.token_url', self::TOKEN_URL)), [
+                'client_id' => $this->setting('client_id', config('services.siapkerja.client_id')),
+                'client_secret' => $this->setting('client_secret', config('services.siapkerja.client_secret')),
                 'grant_type' => 'authorization_code',
                 'code' => $code,
-                'redirect_uri' => config('services.siapkerja.redirect'),
+                'redirect_uri' => $this->setting('redirect', config('services.siapkerja.redirect')),
             ]);
 
         if ($tokenResponse->failed()) {
@@ -69,7 +70,7 @@ class SiapKerjaSsoController extends Controller
 
         $profileResponse = Http::withToken($accessToken)
             ->acceptJson()
-            ->get(self::PROFILE_URL);
+            ->get($this->setting('profile_url', self::PROFILE_URL));
 
         if ($profileResponse->failed()) {
             return redirect()->route('login')->withErrors('Gagal mengambil profil SIAPKerja.');
@@ -78,30 +79,48 @@ class SiapKerjaSsoController extends Controller
         $profile = $profileResponse->json();
         $profileData = $profile['data'] ?? $profile;
 
-        $email = $profileData['email'] ?? null;
-        if (! $email) {
-            return redirect()->route('login')->withErrors('Profil SIAPKerja tidak menyediakan email.');
+        $email = data_get($profileData, 'email') ?? data_get($profileData, 'user.email');
+        $nik = data_get($profileData, 'nik') ?? data_get($profileData, 'identity_number');
+
+        if (! $nik && ! $email) {
+            return redirect()->route('login')->withErrors('Profil SIAPKerja tidak menyediakan identitas NIK atau email.');
         }
 
-        $name = $profileData['name'] ?? ($profileData['full_name'] ?? 'Pengguna SIAPKerja');
+        $name = data_get($profileData, 'name') ?? data_get($profileData, 'full_name') ?? ($email ?: 'Pengguna SIAPKerja');
+        $siapKerjaId = data_get($profileData, 'id') ?? data_get($profileData, 'user.id');
 
-        $user = User::firstOrCreate(
-            ['email' => $email],
-            [
-                'name' => $name,
-                'password' => Str::random(32),
-                'two_factor_enabled' => false,
-            ]
-        );
-
-        if (! $user->email_verified_at) {
-            $user->email_verified_at = now();
-            $user->save();
+        $existingUserQuery = User::query();
+        if ($nik) {
+            $existingUserQuery->where('nik', $nik);
         }
+        if ($email) {
+            $existingUserQuery->{$nik ? 'orWhere' : 'where'}('email', $email);
+        }
+        $existingUser = $existingUserQuery->first();
+
+        $lookupAttributes = $existingUser
+            ? ['id' => $existingUser->id]
+            : ($nik ? ['nik' => $nik] : ['email' => $email]);
+
+        $user = User::updateOrCreate($lookupAttributes, [
+            'name' => $name,
+            'nik' => $nik,
+            'email' => $email,
+            'siap_kerja_id' => $siapKerjaId,
+            'sso_payload' => $profile,
+            'password' => Str::random(32), // dummy password because login is via SSO
+            'email_verified_at' => now(),
+        ]);
 
         Auth::login($user, true);
+        session()->regenerate();
 
         $intended = session()->pull('url.intended');
         return redirect()->to($intended ?? route('home'));
+    }
+
+    private function setting(string $key, ?string $default = null): ?string
+    {
+        return SiteSetting::valueOf("siapkerja_{$key}", $default);
     }
 }

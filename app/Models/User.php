@@ -29,8 +29,12 @@ class User extends Authenticatable
      */
     protected $fillable = [
         'name',
+        'nik',
         'email',
+        'siap_kerja_id',
+        'sso_payload',
         'password',
+        'email_verified_at',
         'two_factor_enabled',
     ];
 
@@ -43,6 +47,7 @@ class User extends Authenticatable
         'password',
         'remember_token',
         'api_token',
+        'sso_payload',
     ];
 
     /**
@@ -56,6 +61,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'two_factor_enabled' => 'boolean',
+            'sso_payload' => 'array',
         ];
     }
 

@@ -16,40 +16,34 @@ class TrainingScheduleController extends Controller
 
     public function create()
     {
-        return view('admin.training_schedule.form', [
-            'schedule' => new TrainingSchedule(),
-            'action' => route('admin.training-schedule.store'),
-            'method' => 'POST',
-        ]);
+        return redirect()->route('admin.training-schedule.index')->with('error', 'Pembuatan jadwal manual dinonaktifkan. Gunakan sinkronisasi.');
     }
 
     public function store(Request $request)
     {
-        $data = $this->validateData($request);
-        TrainingSchedule::create($data);
-        return redirect()->route('admin.training-schedule.index')->with('success', 'Jadwal pelatihan ditambahkan.');
+        return redirect()->route('admin.training-schedule.index')->with('error', 'Pembuatan jadwal manual dinonaktifkan.');
+    }
+
+    public function show(TrainingSchedule $training_schedule)
+    {
+        return view('admin.training_schedule.show', [
+            'schedule' => $training_schedule,
+        ]);
     }
 
     public function edit(TrainingSchedule $training_schedule)
     {
-        return view('admin.training_schedule.form', [
-            'schedule' => $training_schedule,
-            'action' => route('admin.training-schedule.update', $training_schedule->id),
-            'method' => 'PUT',
-        ]);
+        return $this->show($training_schedule);
     }
 
     public function update(Request $request, TrainingSchedule $training_schedule)
     {
-        $data = $this->validateData($request);
-        $training_schedule->update($data);
-        return redirect()->route('admin.training-schedule.index')->with('success', 'Jadwal pelatihan diperbarui.');
+        return redirect()->route('admin.training-schedule.index')->with('error', 'Perubahan jadwal manual dinonaktifkan.');
     }
 
     public function destroy(TrainingSchedule $training_schedule)
     {
-        $training_schedule->delete();
-        return redirect()->route('admin.training-schedule.index')->with('success', 'Jadwal pelatihan dihapus.');
+        return redirect()->route('admin.training-schedule.index')->with('error', 'Penghapusan jadwal manual dinonaktifkan.');
     }
 
     private function validateData(Request $request): array

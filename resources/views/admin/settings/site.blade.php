@@ -22,6 +22,57 @@
             <div class="border rounded-3 p-3 p-md-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
+                        <h6 class="fw-bold mb-1">Konfigurasi SIAP Kerja / Skillhub</h6>
+                        <small class="text-muted">Creds untuk SSO dan sinkronisasi pusat. Kosongkan field yang tidak ingin diubah.</small>
+                    </div>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Client ID</label>
+                        <input type="text" name="siapkerja_client_id" class="form-control" value="{{ old('siapkerja_client_id', $settings['siapkerja_client_id'] ?? '') }}" placeholder="SIAPKERJA_CLIENT_ID">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Client Secret</label>
+                        <input type="password" name="siapkerja_client_secret" class="form-control" value="{{ old('siapkerja_client_secret', $settings['siapkerja_client_secret'] ?? '') }}" placeholder="SIAPKERJA_CLIENT_SECRET">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Redirect URI</label>
+                        <input type="text" name="siapkerja_redirect" class="form-control" value="{{ old('siapkerja_redirect', $settings['siapkerja_redirect'] ?? config('services.siapkerja.redirect')) }}" placeholder="https://domainmu.com/sso/siapkerja/callback">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Scope</label>
+                        <input type="text" name="siapkerja_scope" class="form-control" value="{{ old('siapkerja_scope', $settings['siapkerja_scope'] ?? config('services.siapkerja.scope')) }}" placeholder="basic email">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">API Base URL</label>
+                        <input type="text" name="siapkerja_api_base" class="form-control" value="{{ old('siapkerja_api_base', $settings['siapkerja_api_base'] ?? config('services.siapkerja.api_base')) }}" placeholder="https://skillhub.kemnaker.go.id/api">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Token URL</label>
+                        <input type="text" name="siapkerja_token_url" class="form-control" value="{{ old('siapkerja_token_url', $settings['siapkerja_token_url'] ?? config('services.siapkerja.token_url')) }}" placeholder="https://account.kemnaker.go.id/api/v1/tokens">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Profile URL</label>
+                        <input type="text" name="siapkerja_profile_url" class="form-control" value="{{ old('siapkerja_profile_url', $settings['siapkerja_profile_url'] ?? '') }}" placeholder="https://account.kemnaker.go.id/api/v1/users/me">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Admin Client ID (Skillhub Sync)</label>
+                        <input type="text" name="siapkerja_admin_client_id" class="form-control" value="{{ old('siapkerja_admin_client_id', $settings['siapkerja_admin_client_id'] ?? '') }}" placeholder="SIAPKERJA_ADMIN_CLIENT_ID">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Admin Client Secret</label>
+                        <input type="password" name="siapkerja_admin_client_secret" class="form-control" value="{{ old('siapkerja_admin_client_secret', $settings['siapkerja_admin_client_secret'] ?? '') }}" placeholder="SIAPKERJA_ADMIN_CLIENT_SECRET">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Admin Scope</label>
+                        <input type="text" name="siapkerja_admin_scope" class="form-control" value="{{ old('siapkerja_admin_scope', $settings['siapkerja_admin_scope'] ?? config('services.siapkerja.admin_scope')) }}" placeholder="client">
+                    </div>
+                </div>
+            </div>
+
+            <div class="border rounded-3 p-3 p-md-4">
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
                         <h6 class="fw-bold mb-1">Bagian Utama Beranda</h6>
                         <small class="text-muted">Judul pembuka, deskripsi singkat, tombol ajakan, dan gambar utama.</small>
                     </div>

@@ -14,26 +14,11 @@
     <div class="card shadow-lg p-4">
         <div class="text-center mb-4">
             <h4 class="fw-bold text-primary">LUPA PASSWORD</h4>
-            <p class="text-muted small">Masukkan email untuk menerima tautan reset.</p>
+            <p class="text-muted small">Reset password dikelola langsung di SIAP Kerja.</p>
         </div>
 
-        @if(session('status'))
-            <div class="alert alert-success text-center small p-2">
-                {{ session('status') }}
-            </div>
-        @endif
-
-        <form action="{{ route('password.email') }}" method="POST">
-            @csrf
-            <div class="mb-3">
-                <label class="form-label fw-bold">Email</label>
-                <input type="email" name="email" class="form-control" placeholder="admin@bpvp.com" value="{{ old('email') }}" required>
-                @error('email')
-                    <small class="text-danger">{{ $message }}</small>
-                @enderror
-            </div>
-            <button type="submit" class="btn btn-primary w-100 py-2">Kirim tautan reset</button>
-        </form>
+        <div class="alert alert-info text-center small">Silakan gunakan tombol di bawah untuk login dengan SIAP Kerja.</div>
+        <a href="{{ route('sso.siapkerja.redirect') }}" class="btn btn-primary w-100 py-2">Login dengan SIAP Kerja</a>
 
         <div class="text-center mt-3">
             <a href="{{ route('login') }}" class="text-decoration-none small">Kembali ke login</a>

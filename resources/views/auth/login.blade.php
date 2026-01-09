@@ -175,38 +175,27 @@
                     </div>
                 @endif
 
-                <form action="{{ route('login.post') }}" method="POST" class="vstack gap-3">
-                    @csrf
-                    <div class="input-icon">
-                        <label class="form-label fw-semibold">Email</label>
-                        <span class="icon"><i class="fas fa-envelope"></i></span>
-                        <input type="email" name="email" class="form-control" placeholder="admin@bpvp.com" required>
-                    </div>
-                    <div class="input-icon">
-                        <label class="form-label fw-semibold">Password</label>
-                        <span class="icon"><i class="fas fa-lock"></i></span>
-                        <input type="password" name="password" id="password-input" class="form-control" placeholder="********" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100 py-2">MASUK</button>
-                </form>
-
-                <div class="text-center my-3 text-muted small">atau</div>
+                <div class="mb-4">
+                    <h4 class="fw-bold mb-1 text-center">Login dengan SIAP Kerja</h4>
+                    <p class="text-muted small text-center mb-0">Portal ini hanya menerima autentikasi melalui akun SIAP Kerja.</p>
+                </div>
                 @php
                     $hasSso = config('services.siapkerja.client_id') && config('services.siapkerja.client_secret') && config('services.siapkerja.redirect');
                 @endphp
                 @if($hasSso)
-                    <a href="{{ route('sso.siapkerja.redirect') }}" class="btn sso-btn w-100 py-2">
-                        <i class="fas fa-external-link-alt me-2"></i> Login dengan SIAPKerja
+                    <a href="{{ route('sso.siapkerja.redirect') }}" class="btn sso-btn w-100 py-3 fw-semibold">
+                        <i class="fas fa-external-link-alt me-2"></i> Masuk dengan Akun SIAP Kerja
                     </a>
                 @else
-                    <button type="button" class="btn sso-btn w-100 py-2" disabled title="Konfigurasi SIAPKerja belum diisi">
-                        Login dengan SIAPKerja (segera tersedia)
+                    <div class="alert alert-warning text-center small">
+                        Konfigurasi SIAP Kerja belum diisi. Tambahkan kredensial pada .env untuk mengaktifkan SSO.
+                    </div>
+                    <button type="button" class="btn sso-btn w-100 py-3" disabled title="Konfigurasi SIAPKerja belum diisi">
+                        Masuk dengan Akun SIAP Kerja
                     </button>
                 @endif
                 
                 <div class="text-center mt-3 help-links">
-                    <a href="{{ route('password.request') }}" class="text-decoration-none small me-3">Lupa password?</a>
-                    <a href="{{ route('register') }}" class="text-decoration-none small me-3">Belum punya akun?</a>
                     <a href="{{ route('home') }}" class="text-decoration-none small">Kembali ke Website Utama</a>
                 </div>
             </div>

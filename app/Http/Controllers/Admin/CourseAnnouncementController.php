@@ -132,7 +132,7 @@ class CourseAnnouncementController extends Controller
     private function notifyParticipants(CourseAnnouncement $announcement): void
     {
         $userIds = CourseEnrollment::where('course_class_id', $announcement->course_class_id)
-            ->where('status', 'active')
+            ->whereIn('status', ['active', 'approved'])
             ->pluck('user_id')
             ->all();
 

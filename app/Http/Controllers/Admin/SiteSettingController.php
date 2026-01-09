@@ -49,6 +49,18 @@ class SiteSettingController extends Controller
             'home_why_image_upload' => 'nullable|image|max:2048',
             'home_flow_image_upload' => 'nullable|image|max:2048',
 
+            // SIAP Kerja / Skillhub API & SSO
+            'siapkerja_client_id' => 'nullable|string',
+            'siapkerja_client_secret' => 'nullable|string',
+            'siapkerja_redirect' => 'nullable|string',
+            'siapkerja_scope' => 'nullable|string',
+            'siapkerja_api_base' => 'nullable|string',
+            'siapkerja_token_url' => 'nullable|string',
+            'siapkerja_profile_url' => 'nullable|string',
+            'siapkerja_admin_client_id' => 'nullable|string',
+            'siapkerja_admin_client_secret' => 'nullable|string',
+            'siapkerja_admin_scope' => 'nullable|string',
+
             'cta_title' => 'nullable|string',
             'cta_subtitle' => 'nullable|string',
             'cta_button_1_text' => 'nullable|string',
@@ -86,6 +98,7 @@ class SiteSettingController extends Controller
 
         foreach ($data as $key => $value) {
             SiteSetting::updateOrCreate(['key' => $key], ['value' => $value]);
+            cache()->forget("site_setting:{$key}");
         }
 
         return redirect()->route('admin.settings.site')->with('success', 'Pengaturan situs disimpan.');

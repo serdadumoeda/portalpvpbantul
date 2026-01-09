@@ -14,38 +14,11 @@
     <div class="card shadow-lg p-4">
         <div class="text-center mb-4">
             <h4 class="fw-bold text-primary">RESET PASSWORD</h4>
-            <p class="text-muted small">Masukkan password baru.</p>
+            <p class="text-muted small">Reset password dilakukan melalui SIAP Kerja. Gunakan tombol di bawah untuk login.</p>
         </div>
 
-        @if(session('status'))
-            <div class="alert alert-success text-center small p-2">
-                {{ session('status') }}
-            </div>
-        @endif
-
-        <form action="{{ route('password.update') }}" method="POST">
-            @csrf
-            <input type="hidden" name="token" value="{{ $token }}">
-            <div class="mb-3">
-                <label class="form-label fw-bold">Email</label>
-                <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
-                @error('email')
-                    <small class="text-danger">{{ $message }}</small>
-                @enderror
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Password baru</label>
-                <input type="password" name="password" class="form-control" required>
-                @error('password')
-                    <small class="text-danger">{{ $message }}</small>
-                @enderror
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Konfirmasi password</label>
-                <input type="password" name="password_confirmation" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100 py-2">Perbarui password</button>
-        </form>
+        <div class="alert alert-info text-center small">Arahkan peserta untuk memulihkan akun langsung di SIAP Kerja.</div>
+        <a href="{{ route('sso.siapkerja.redirect') }}" class="btn btn-primary w-100 py-2">Login dengan SIAP Kerja</a>
 
         <div class="text-center mt-3">
             <a href="{{ route('login') }}" class="text-decoration-none small">Kembali ke login</a>

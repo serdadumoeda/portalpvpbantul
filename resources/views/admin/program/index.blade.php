@@ -7,11 +7,20 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h3>Kelola Program Pelatihan</h3>
-    <a href="{{ route('admin.program.create') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Tambah Program</a>
+    <form action="{{ route('admin.skillhub.sync') }}" method="POST" class="mb-0">
+        @csrf
+        <button class="btn btn-primary"><i class="fas fa-sync-alt me-1"></i> Sinkronisasi dari Pusat</button>
+    </form>
 </div>
 
 <div class="card border-0 shadow-sm">
     <div class="card-body">
+        @if(session('success'))
+            <div class="alert alert-success">{{ session('success') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
         <form method="GET" class="row g-2 align-items-end mb-3">
             <div class="col-sm-4 col-md-3">
                 <label class="form-label mb-1">Filter Status</label>
@@ -37,6 +46,7 @@
                     <th width="5%">No</th>
                     <th width="15%">Gambar</th>
                     <th>Nama Kejuruan</th>
+                    <th>External ID</th>
                     <th>Deskripsi Singkat</th>
                     <th>Status</th>
                     <th width="15%">Aksi</th>
@@ -53,6 +63,7 @@
                         @endif
                     </td>
                     <td class="fw-bold">{{ $p->judul }}</td>
+                    <td>{{ $p->external_id ?? '-' }}</td>
                     <td>{{ Str::limit($p->deskripsi, 100) }}</td>
                     <td class="text-nowrap">
                         @php
@@ -66,12 +77,9 @@
                         <span class="badge {{ $badgeClass }}">{{ $statusOptions[$status] ?? ucfirst($status) }}</span>
                     </td>
                     <td>
-                        <a href="{{ route('admin.program.edit', $p->id) }}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
-                        <form action="{{ route('admin.program.destroy', $p->id) }}" method="POST" class="d-inline" onsubmit="return confirm('Hapus program ini?')">
-                            @csrf
-                            @method('DELETE')
-                            <button class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></button>
-                        </form>
+                        <a href="{{ route('admin.program.show', $p->id) }}" class="btn btn-sm btn-outline-secondary">
+                            <i class="fas fa-eye me-1"></i> Detail
+                        </a>
                     </td>
                 </tr>
                 @endforeach

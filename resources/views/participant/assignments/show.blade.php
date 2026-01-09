@@ -32,7 +32,7 @@
                     <span class="badge text-bg-secondary">Sisa percobaan: {{ max(0, $quizMaxAttempts - ($quizAttemptsDone ?? 0)) }} / {{ $quizMaxAttempts }}</span>
                 @endif
                 @if($quizExpiresAt)
-                    <span class="badge text-bg-warning text-dark" id="quizTimer" data-expire="{{ $quizExpiresAt }}">
+                    <span class="badge text-bg-warning text-dark" id="quizTimer" data-expire="{{ $quizExpiresAt }}" data-auto-submit="{{ $assignment->auto_submit ? 1 : 0 }}">
                         Waktu tersisa: <span id="quizTimerValue">-</span>
                     </span>
                 @elseif(($assignment->quiz_settings['time_limit_minutes'] ?? null))
@@ -44,8 +44,22 @@
             @elseif($submission)
                 <div class="alert alert-secondary">Anda sudah mengerjakan quiz ini.</div>
             @else
-                <form action="{{ route('participant.assignments.submit', $assignment) }}" method="POST" class="row g-4">
+                <form action="{{ route('participant.assignments.submit', $assignment) }}" method="POST" class="row g-4" id="quizForm">
                     @csrf
+                    @if($assignment->require_token)
+                        <div class="col-12">
+                            <label class="form-label">Token Ujian</label>
+                            <input type="text" name="exam_token" class="form-control @error('exam_token') is-invalid @enderror" placeholder="Masukkan token dari panitia" required>
+                            @error('exam_token') <div class="invalid-feedback">{{ $message }}</div> @enderror
+                        </div>
+                    @endif
+                    @if($assignment->exam_start_at || $assignment->exam_end_at)
+                        <div class="col-12">
+                            <div class="alert alert-info py-2 px-3 small mb-0">
+                                Waktu ujian: {{ $assignment->exam_start_at?->format('d M Y H:i') ?? '-' }} s/d {{ $assignment->exam_end_at?->format('d M Y H:i') ?? '-' }}
+                            </div>
+                        </div>
+                    @endif
                     @foreach($quizQuestions ?? [] as $question)
                         <div class="col-12">
                             <div class="fw-semibold">{{ $loop->iteration }}. {{ $question['text'] ?? '' }}</div>
@@ -142,13 +156,16 @@
         const valueEl = document.getElementById('quizTimerValue');
         if (!timerEl || !valueEl) return;
         const expire = new Date(timerEl.dataset.expire);
+        const autoSubmit = timerEl.dataset.autoSubmit === '1';
+        const form = document.getElementById('quizForm');
         function tick() {
             const now = new Date();
             const diff = expire - now;
             if (diff <= 0) {
                 valueEl.textContent = 'habis';
-                const form = timerEl.closest('form');
-                if (form) {
+                if (autoSubmit && form) {
+                    form.submit();
+                } else if (form) {
                     form.querySelectorAll('button, input, textarea, select').forEach(el => el.disabled = true);
                 }
                 return;

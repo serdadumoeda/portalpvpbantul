@@ -111,7 +111,7 @@
                 <input
                     type="url"
                     name="pendaftaran_link"
-                    value="{{ old('pendaftaran_link', 'https://siapkerja.kemnaker.go.id/app/pelatihan') }}"
+                    value="{{ old('pendaftaran_link', 'https://skillhub.kemnaker.go.id/app/pelatihan') }}"
                     class="form-control @error('pendaftaran_link') is-invalid @enderror"
                     placeholder="https://siapkerja.kemnaker.go.id/app/pelatihan"
                 >
