@@ -1,13 +1,171 @@
 <?php
 
-namespace App\Http\Controllers\Admin;
+namespace App\Http\Controllers\Instructor;
 
 use App\Http\Controllers\Controller;
+use App\Models\InstructorSchedule;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
-class SchedulePreviewController extends Controller
+class InstructorScheduleController extends Controller
 {
-    public function __invoke(Request $request)
+    public function index()
+    {
+        $this->authorizeInstructor();
+
+        $schedules = InstructorSchedule::where('created_by', Auth::id())
+            ->latest()
+            ->get();
+
+        return view('instructor.schedules.index', compact('schedules'));
+    }
+
+    public function create()
+    {
+        $this->authorizeInstructor();
+
+        $defaults = $this->defaults();
+
+        return view('instructor.schedules.form', [
+            'schedule' => new InstructorSchedule(),
+            'action' => route('instructor.schedules.store'),
+            'method' => 'POST',
+            'metaJson' => $this->toJson($defaults['meta']),
+            'daysJson' => $this->toJson($defaults['days']),
+            'rowsJson' => $this->toJson($defaults['rows']),
+            'unitsJson' => $this->toJson($defaults['units']),
+            'trainerJson' => $this->toJson($defaults['trainer']),
+            'signaturesJson' => $this->toJson($defaults['signatures']),
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $this->authorizeInstructor();
+
+        $payload = $this->validatePayload($request);
+
+        InstructorSchedule::create($payload + ['created_by' => Auth::id()]);
+
+        return redirect()->route('instructor.schedules.index')->with('success', 'Jadwal berhasil dibuat.');
+    }
+
+    public function edit(InstructorSchedule $schedule)
+    {
+        $this->authorizeInstructor();
+        $this->authorizeOwner($schedule);
+
+        return view('instructor.schedules.form', [
+            'schedule' => $schedule,
+            'action' => route('instructor.schedules.update', $schedule),
+            'method' => 'PUT',
+            'metaJson' => $this->toJson($schedule->meta ?? []),
+            'daysJson' => $this->toJson($schedule->days ?? []),
+            'rowsJson' => $this->toJson($schedule->rows ?? []),
+            'unitsJson' => $this->toJson($schedule->unit_descriptions ?? []),
+            'trainerJson' => $this->toJson($schedule->trainer ?? []),
+            'signaturesJson' => $this->toJson($schedule->signatures ?? []),
+        ]);
+    }
+
+    public function update(Request $request, InstructorSchedule $schedule)
+    {
+        $this->authorizeInstructor();
+        $this->authorizeOwner($schedule);
+
+        $payload = $this->validatePayload($request);
+        $schedule->update($payload);
+
+        return redirect()->route('instructor.schedules.index')->with('success', 'Jadwal diperbarui.');
+    }
+
+    public function destroy(InstructorSchedule $schedule)
+    {
+        $this->authorizeInstructor();
+        $this->authorizeOwner($schedule);
+        $schedule->delete();
+
+        return redirect()->route('instructor.schedules.index')->with('success', 'Jadwal dihapus.');
+    }
+
+    public function preview(InstructorSchedule $schedule)
+    {
+        $this->authorizeInstructor();
+        $this->authorizeOwner($schedule);
+
+        $meta = $schedule->meta ?? [];
+        $days = $schedule->days ?? [];
+        $unitDescriptions = $schedule->unit_descriptions ?? [];
+        $trainer = $schedule->trainer ?? [];
+        $rows = $schedule->rows ?? [];
+
+        return view('admin.talent_pool.schedule-preview', [
+            'meta' => $meta,
+            'days' => $days,
+            'unitDescriptions' => $unitDescriptions,
+            'trainer' => $trainer,
+            'schedule' => $rows,
+            'signatures' => $schedule->signatures ?? $this->defaults()['signatures'],
+        ]);
+    }
+
+    private function authorizeOwner(InstructorSchedule $schedule): void
+    {
+        if ($schedule->created_by !== Auth::id()) {
+            abort(403);
+        }
+    }
+
+    private function authorizeInstructor(): void
+    {
+        $user = Auth::user();
+        if (! $user || ! $user->hasAnyRole(['instructor', 'instruktur', 'admin', 'superadmin'])) {
+            abort(403);
+        }
+    }
+
+    private function validatePayload(Request $request): array
+    {
+        $data = $request->validate([
+            'title' => 'required|string|max:255',
+            'meta_json' => 'required|string',
+            'days_json' => 'required|string',
+            'rows_json' => 'required|string',
+            'unit_descriptions_json' => 'required|string',
+            'trainer_json' => 'required|string',
+            'signatures_json' => 'required|string',
+        ]);
+
+        return [
+            'title' => $data['title'],
+            'meta' => $this->decodeJson($data['meta_json'], 'meta_json'),
+            'days' => $this->decodeJson($data['days_json'], 'days_json'),
+            'rows' => $this->decodeJson($data['rows_json'], 'rows_json'),
+            'unit_descriptions' => $this->decodeJson($data['unit_descriptions_json'], 'unit_descriptions_json'),
+            'trainer' => $this->decodeJson($data['trainer_json'], 'trainer_json'),
+            'signatures' => $this->decodeJson($data['signatures_json'], 'signatures_json'),
+        ];
+    }
+
+    private function decodeJson(string $json, string $field): array
+    {
+        $decoded = json_decode($json, true);
+        if (json_last_error() !== JSON_ERROR_NONE || !is_array($decoded)) {
+            throw ValidationException::withMessages([
+                $field => 'Format JSON tidak valid.',
+            ]);
+        }
+
+        return $decoded;
+    }
+
+    private function toJson(array $data): string
+    {
+        return json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    }
+
+    private function defaults(): array
     {
         $meta = [
             'kejuruan' => 'FASHION TECHNOLOGY',
@@ -36,7 +194,7 @@ class SchedulePreviewController extends Controller
             ['key' => 'sabtu', 'label' => 'SABTU', 'date' => '26', 'hatched' => true],
         ];
 
-        $schedule = [
+        $rows = [
             [
                 'type' => 'apel',
                 'no_l' => '',
@@ -190,61 +348,7 @@ class SchedulePreviewController extends Controller
             ],
         ];
 
-        $dailyCodes = [
-            'senin' => [
-                1 => ['P.8550FOO.001.1', 'TIM'],
-                2 => ['P.8550FOO.001.1', 'TIM'],
-                3 => ['P.8550FOO.004.1', 'TIM'],
-                4 => ['P.8550FOO.004.1', 'TIM'],
-                5 => ['P.8550FOO.003.1', 'TIM'],
-                6 => ['P.8550FOO.003.1', 'TIM'],
-                7 => ['P.8550FOO.004.1', 'TIM'],
-                8 => ['P.8550FOO.004.1', 'TIM'],
-            ],
-            'selasa' => [
-                1 => ['P.8550FOO.001.1', 'TIM'],
-                2 => ['P.8550FOO.001.1', 'TIM'],
-                3 => ['P.8550FOO.004.1', 'TIM'],
-                4 => ['P.8550FOO.004.1', 'TIM'],
-                5 => ['P.8550FOO.003.1', 'TIM'],
-                6 => ['P.8550FOO.003.1', 'TIM'],
-                7 => ['P.8550FOO.004.1', 'TIM'],
-                8 => ['P.8550FOO.004.1', 'TIM'],
-            ],
-            'rabu' => [
-                1 => ['P.8550FOO.006.1', 'WV'],
-                2 => ['P.8550FOO.019.1', 'WV'],
-                3 => ['P.8550FOO.019.1', 'WV'],
-                4 => ['P.8550FOO.019.1', 'WV'],
-                5 => ['P.8550FOO.006.3', 'WV'],
-                6 => ['P.8550FOO.006.3', 'WV'],
-                7 => ['P.8550FOO.010.1', 'WV'],
-                8 => ['P.8550FOO.010.1', 'WV'],
-            ],
-            'kamis' => [
-                1 => ['P.8550FOO.006.1', 'WV'],
-                2 => ['P.8550FOO.019.1', 'WV'],
-                3 => ['P.8550FOO.019.1', 'WV'],
-                4 => ['P.8550FOO.019.1', 'WV'],
-                5 => ['C.14GMT06.006.3', 'WV'],
-                6 => ['C.14GMT06.006.3', 'WV'],
-                7 => ['C.14GMT06.006.3', 'WV'],
-                8 => ['C.14GMT06.006.3', 'WV'],
-            ],
-            'jumat' => [
-                1 => ['Senam', ''],
-                2 => ['C.14GMT06.006.3', 'WV'],
-                3 => ['C.14GMT06.006.3', 'WV'],
-                4 => ['C.14GMT06.003.1', 'WV'],
-                5 => ['C.14GMT06.003.3', 'WV'],
-                6 => ['C.14GMT06.003.3', 'WV'],
-                7 => ['C.14GMT06.010.1', 'WV'],
-                8 => ['C.14GMT06.010.1', 'WV'],
-            ],
-            'sabtu' => [],
-        ];
-
-        $unitDescriptions = [
+        $units = [
             ['code' => 'FMD', 'desc' => 'Fisik Mental Disiplin'],
             ['code' => 'GAR.CM01.003.01', 'desc' => 'Mengikuti Prosedur Kesehatan, Keselamatan Kerja (K3) penunjang'],
             ['code' => 'C.14GMT06.006.3', 'desc' => 'Menempel Interlining ke Komponen Garmen'],
@@ -278,6 +382,6 @@ class SchedulePreviewController extends Controller
             'mid_right_nip' => 'NIP 19920920 201801 2 004',
         ];
 
-        return view('admin.talent_pool.schedule-preview', compact('meta', 'schedule', 'dailyCodes', 'unitDescriptions', 'trainer', 'days', 'signatures'));
+        return compact('meta', 'days', 'rows', 'units', 'trainer', 'signatures');
     }
 }

@@ -1,6 +1,12 @@
 @extends('layouts.app')
 
 @section('content')
+@php
+    $registrationUrl = $program->pendaftaran_link ?: 'https://siapkerja.kemnaker.go.id/app/pelatihan';
+    $biayaLabel = $program->biaya_label ?: 'Gratis';
+    $sertifikatLabel = $program->sertifikat_label ?: 'Sertifikat Mengikuti Pelatihan';
+    $bahasaLabel = $program->bahasa_label ?: 'Bahasa Indonesia';
+@endphp
 <section class="section-shell" style="background: linear-gradient(120deg, #f5f9ff 0%, #eef5fb 50%, #f3f9fc 100%);">
     <div class="container">
         <div class="row g-4">
@@ -23,14 +29,14 @@
                         </div>
                         <div>
                             <h6 class="fw-bold mb-1">{{ $program->judul }}</h6>
-                            <span class="badge bg-success">Gratis</span>
+                            <span class="badge bg-success">{{ $biayaLabel }}</span>
                         </div>
                     </div>
                     <div class="mb-3">
-                        <div class="d-flex align-items-center text-muted mb-2"><i class="fas fa-check-circle text-success me-2"></i> Sertifikat Mengikuti Pelatihan</div>
-                        <div class="d-flex align-items-center text-muted"><i class="fas fa-language text-success me-2"></i> Bahasa Indonesia</div>
+                        <div class="d-flex align-items-center text-muted mb-2"><i class="fas fa-check-circle text-success me-2"></i> {{ $sertifikatLabel }}</div>
+                        <div class="d-flex align-items-center text-muted"><i class="fas fa-language text-success me-2"></i> {{ $bahasaLabel }}</div>
                     </div>
-                    <a href="{{ route('program.show', $program->id) }}" class="btn btn-primary w-100 pill-btn">Daftar Pelatihan Sekarang</a>
+                    <a href="{{ $registrationUrl }}" target="_blank" rel="noopener" class="btn btn-primary w-100 pill-btn">Daftar Pelatihan Sekarang</a>
                 </div>
             </div>
         </div>

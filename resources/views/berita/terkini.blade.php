@@ -103,9 +103,10 @@
             <div class="col-lg-6">
                 <div class="news-hero-card h-100">
                     <span class="badge bg-white text-primary fw-semibold mb-3 shadow-sm">Update Satpel PVP Bantul</span>
-                    <h1 class="fw-bold text-white">Berita Terkini</h1>
-                    <p class="mb-4">Sorotan berita terkini seputar pelatihan, inovasi layanan, hingga pengakuan kompetensi.</p>
-                    <a href="#section-berita" class="btn btn-outline-light rounded-pill px-4">Lihat Selengkapnya</a>
+                    <h1 class="fw-bold text-white mb-1">{{ $hero?->judul ?? 'Berita Terkini' }}</h1>
+                    <p class="mb-1 text-white-50">{{ optional($hero?->published_at ?? $hero?->created_at)->translatedFormat('d F Y') }}</p>
+                    <p class="mb-4">{{ $hero?->excerpt ?? 'Sorotan berita terkini seputar pelatihan, inovasi layanan, hingga pengakuan kompetensi.' }}</p>
+                    <a href="{{ $hero ? route('berita.show', $hero->slug) : '#section-berita' }}" class="btn btn-outline-light rounded-pill px-4">Lihat Selengkapnya</a>
                 </div>
             </div>
             <div class="col-lg-6">

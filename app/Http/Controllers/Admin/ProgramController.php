@@ -54,6 +54,10 @@ class ProgramController extends Controller
         $request->validate([
             'judul'     => 'required|min:5|max:255',
             'deskripsi' => 'required|min:10',
+            'pendaftaran_link' => 'nullable|url|max:500',
+            'biaya_label' => 'nullable|string|max:255',
+            'sertifikat_label' => 'nullable|string|max:255',
+            'bahasa_label' => 'nullable|string|max:255',
             'kode_unit_kompetensi' => 'nullable|string|max:2000',
             'fasilitas_keunggulan' => 'nullable|string|max:2000',
             'info_tambahan' => 'nullable|string|max:2000',
@@ -73,6 +77,10 @@ class ProgramController extends Controller
         $data = [
             'judul'     => $this->sanitizePlain($request->judul),
             'deskripsi' => $this->sanitizeRich($request->deskripsi),
+            'pendaftaran_link' => $this->sanitizePlain($request->pendaftaran_link),
+            'biaya_label' => $this->sanitizePlain($request->biaya_label ?: 'Gratis'),
+            'sertifikat_label' => $this->sanitizePlain($request->sertifikat_label ?: 'Sertifikat Mengikuti Pelatihan'),
+            'bahasa_label' => $this->sanitizePlain($request->bahasa_label ?: 'Bahasa Indonesia'),
             'kode_unit_kompetensi' => $this->sanitizeRich($request->kode_unit_kompetensi),
             'fasilitas_keunggulan' => $this->sanitizeRich($request->fasilitas_keunggulan),
             'info_tambahan' => $this->sanitizeRich($request->info_tambahan),
@@ -113,6 +121,10 @@ class ProgramController extends Controller
         $request->validate([
             'judul'     => 'required|min:5|max:255',
             'deskripsi' => 'required|min:10',
+            'pendaftaran_link' => 'nullable|url|max:500',
+            'biaya_label' => 'nullable|string|max:255',
+            'sertifikat_label' => 'nullable|string|max:255',
+            'bahasa_label' => 'nullable|string|max:255',
             'kode_unit_kompetensi' => 'nullable|string|max:2000',
             'fasilitas_keunggulan' => 'nullable|string|max:2000',
             'info_tambahan' => 'nullable|string|max:2000',
@@ -124,6 +136,10 @@ class ProgramController extends Controller
         $dataToUpdate = [
             'judul'     => $this->sanitizePlain($request->judul),
             'deskripsi' => $this->sanitizeRich($request->deskripsi),
+            'pendaftaran_link' => $this->sanitizePlain($request->pendaftaran_link),
+            'biaya_label' => $this->sanitizePlain($request->biaya_label ?: ($program->biaya_label ?? 'Gratis')),
+            'sertifikat_label' => $this->sanitizePlain($request->sertifikat_label ?: ($program->sertifikat_label ?? 'Sertifikat Mengikuti Pelatihan')),
+            'bahasa_label' => $this->sanitizePlain($request->bahasa_label ?: ($program->bahasa_label ?? 'Bahasa Indonesia')),
             'kode_unit_kompetensi' => $this->sanitizeRich($request->kode_unit_kompetensi),
             'fasilitas_keunggulan' => $this->sanitizeRich($request->fasilitas_keunggulan),
             'info_tambahan' => $this->sanitizeRich($request->info_tambahan),

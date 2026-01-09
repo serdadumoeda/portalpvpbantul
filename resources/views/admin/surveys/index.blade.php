@@ -5,10 +5,13 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">Survey & Formulir</h4>
-        <small class="text-muted">Buat survey dinamis seperti Google Form dan pantau responsnya.</small>
+        <h4 class="mb-0">Survey Dinamis</h4>
+        <small class="text-muted">Rancang survei dasar (pertanyaan, tema, logika) yang dipakai ulang oleh Survey Instance.</small>
     </div>
-    <a href="{{ route('admin.surveys.create') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> Buat Survey</a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.survey-instance.index') }}" class="btn btn-outline-primary btn-sm">Kelola Survey Instance</a>
+        <a href="{{ route('admin.surveys.create') }}" class="btn btn-primary"><i class="fas fa-plus me-1"></i> Buat Survey Dinamis</a>
+    </div>
 </div>
 
 <div class="card shadow-sm border-0" id="analitik">

@@ -38,6 +38,63 @@
                 @enderror
             </div>
 
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Label Biaya</label>
+                    <input
+                        type="text"
+                        name="biaya_label"
+                        class="form-control @error('biaya_label') is-invalid @enderror"
+                        value="{{ old('biaya_label', $program->biaya_label ?? 'Gratis') }}"
+                        placeholder="Gratis / Berbayar"
+                    >
+                    @error('biaya_label')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Label Sertifikat</label>
+                    <input
+                        type="text"
+                        name="sertifikat_label"
+                        class="form-control @error('sertifikat_label') is-invalid @enderror"
+                        value="{{ old('sertifikat_label', $program->sertifikat_label ?? 'Sertifikat Mengikuti Pelatihan') }}"
+                        placeholder="Sertifikat Mengikuti Pelatihan"
+                    >
+                    @error('sertifikat_label')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Label Bahasa</label>
+                    <input
+                        type="text"
+                        name="bahasa_label"
+                        class="form-control @error('bahasa_label') is-invalid @enderror"
+                        value="{{ old('bahasa_label', $program->bahasa_label ?? 'Bahasa Indonesia') }}"
+                        placeholder="Bahasa Indonesia"
+                    >
+                    @error('bahasa_label')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Link Pendaftaran</label>
+                <input
+                    type="url"
+                    name="pendaftaran_link"
+                    class="form-control @error('pendaftaran_link') is-invalid @enderror"
+                    value="{{ old('pendaftaran_link', $program->pendaftaran_link ?? 'https://siapkerja.kemnaker.go.id/app/pelatihan') }}"
+                    placeholder="https://siapkerja.kemnaker.go.id/app/pelatihan"
+                >
+                <small class="text-muted">Opsional. Jika dikosongkan, tombol daftar akan diarahkan ke Siap Kerja.</small>
+                @error('pendaftaran_link')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
             <div class="mb-3">
                 <label class="form-label">Kode Unit Kompetensi</label>
                 <textarea name="kode_unit_kompetensi" rows="4" class="form-control @error('kode_unit_kompetensi') is-invalid @enderror" placeholder="Daftar kode unit kompetensi">{{ old('kode_unit_kompetensi', $program->kode_unit_kompetensi) }}</textarea>

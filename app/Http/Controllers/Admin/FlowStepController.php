@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\FlowStep;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class FlowStepController extends Controller
 {
@@ -26,6 +27,9 @@ class FlowStepController extends Controller
     public function store(Request $request)
     {
         $data = $this->validateData($request);
+        $data['is_active'] = $request->boolean('is_active');
+        $data['urutan'] = $data['urutan'] ?? ((FlowStep::max('urutan') ?? 0) + 1);
+        $data['judul'] = $this->resolveTitle($data);
         FlowStep::create($data);
         return redirect()->route('admin.flow.index')->with('success', 'Langkah alur ditambahkan.');
     }
@@ -42,6 +46,9 @@ class FlowStepController extends Controller
     public function update(Request $request, FlowStep $flow)
     {
         $data = $this->validateData($request);
+        $data['is_active'] = $request->boolean('is_active');
+        $data['urutan'] = $data['urutan'] ?? $flow->urutan ?? 0;
+        $data['judul'] = $this->resolveTitle($data, $flow->judul);
         $flow->update($data);
         return redirect()->route('admin.flow.index')->with('success', 'Langkah alur diperbarui.');
     }
@@ -55,10 +62,26 @@ class FlowStepController extends Controller
     private function validateData(Request $request): array
     {
         return $request->validate([
-            'judul' => 'required|string|max:255',
+            'judul' => 'nullable|string|max:255',
             'deskripsi' => 'nullable|string',
             'urutan' => 'nullable|integer',
             'is_active' => 'nullable|boolean',
         ]);
+    }
+
+    private function resolveTitle(array $data, ?string $fallback = null): string
+    {
+        $title = $data['judul'] ?? null;
+        if ($title) {
+            return $title;
+        }
+
+        $desc = trim(strip_tags($data['deskripsi'] ?? ''));
+        if ($desc !== '') {
+            return Str::limit($desc, 80, '');
+        }
+
+        $order = $data['urutan'] ?? 1;
+        return 'Langkah ' . $order;
     }
 }

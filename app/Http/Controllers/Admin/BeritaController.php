@@ -20,7 +20,8 @@ class BeritaController extends Controller
         $statusOptions = Berita::statuses();
         $statusFilter = $request->input('status');
 
-        $query = Berita::latest();
+        // Tampilkan yang terbaru berdasarkan tanggal terbit (fallback ke created_at)
+        $query = Berita::orderByDesc('published_at')->orderByDesc('created_at');
         if ($statusFilter && array_key_exists($statusFilter, $statusOptions)) {
             $query->where('status', $statusFilter);
         }

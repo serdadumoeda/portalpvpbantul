@@ -48,4 +48,11 @@ return [
         'secret_key' => env('TURNSTILE_SECRET_KEY'),
     ],
 
+    'siapkerja' => [
+        'client_id' => env('SIAPKERJA_CLIENT_ID'),
+        'client_secret' => env('SIAPKERJA_CLIENT_SECRET'),
+        'redirect' => env('SIAPKERJA_REDIRECT_URI'),
+        'scope' => env('SIAPKERJA_SCOPE', 'basic email'),
+    ],
+
 ];

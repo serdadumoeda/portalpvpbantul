@@ -7,10 +7,13 @@
 @section('content')
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
-        <h4 class="mb-0">Survey Instances</h4>
-        <small class="text-muted">Binding survei ke kelas/instruktur, dengan status open/closed.</small>
+        <h4 class="mb-0">Survey Instance</h4>
+        <small class="text-muted">Hubungkan survei dinamis ke kelas/instruktur tertentu dengan jadwal buka/tutup terpisah.</small>
     </div>
-    <a href="{{ route('admin.survey-instance.create') }}" class="btn btn-primary btn-sm">Buat Instance</a>
+    <div class="d-flex gap-2">
+        <a href="{{ route('admin.survey-instance.dashboard') }}" class="btn btn-outline-primary btn-sm">Dashboard Survey</a>
+        <a href="{{ route('admin.survey-instance.create') }}" class="btn btn-primary btn-sm">Buat Instance</a>
+    </div>
 </div>
 
 <div class="card shadow-sm border-0">

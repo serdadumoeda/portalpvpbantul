@@ -9,13 +9,12 @@
 <div class="card shadow-sm border-0">
     <div class="card-body table-responsive">
         <table class="table align-middle">
-            <thead><tr><th>#</th><th>Judul</th><th>Deskripsi</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
+            <thead><tr><th>#</th><th>Isi Langkah</th><th>Urutan</th><th>Status</th><th>Aksi</th></tr></thead>
         <tbody>
             @forelse($flows as $flow)
             <tr>
                 <td>{{ $loop->iteration }}</td>
-                <td>{{ $flow->judul }}</td>
-                <td class="small text-muted">{{ Str::limit($flow->deskripsi, 80) }}</td>
+                <td class="small text-muted">{{ Str::limit($flow->deskripsi ?: $flow->judul, 120) }}</td>
                 <td>{{ $flow->urutan }}</td>
                 <td><span class="badge {{ $flow->is_active ? 'bg-success' : 'bg-secondary' }}">{{ $flow->is_active ? 'Aktif' : 'Nonaktif' }}</span></td>
                 <td class="d-flex gap-2">

@@ -461,8 +461,9 @@ class SurveyController extends Controller
 
             foreach ($questionData['options'] as $idx => $optionData) {
                 /** @var SurveyQuestionOption $option */
-                $option = $optionData['id'] && $existingOptions->has($optionData['id'])
-                    ? $existingOptions->get($optionData['id'])
+                $optionId = $optionData['id'] ?? null;
+                $option = $optionId && $existingOptions->has($optionId)
+                    ? $existingOptions->get($optionId)
                     : new SurveyQuestionOption(['survey_question_id' => $question->id]);
 
                 $option->fill([

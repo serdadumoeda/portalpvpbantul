@@ -1,16 +1,17 @@
 @extends('layouts.admin')
 
 @section('content')
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h3 class="mb-1">Tracer Alumni</h3>
-        <p class="text-muted mb-0">Monitor outcome alumni dan insight kebutuhan industri.</p>
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h3 class="mb-1">Tracer Alumni</h3>
+            <p class="text-muted mb-0">Monitor outcome alumni dan insight kebutuhan industri.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{{ route('admin.alumni-tracer.dashboard') }}" class="btn btn-outline-primary btn-sm">Dashboard Tracer</a>
+            <a href="{{ route('admin.alumni-tracer.export') }}" class="btn btn-outline-success btn-sm">Export CSV</a>
+            <a href="{{ route('alumni.tracer') }}" target="_blank" class="btn btn-outline-primary">Bagikan Form</a>
+        </div>
     </div>
-    <div class="d-flex gap-2">
-        <a href="{{ route('admin.alumni-tracer.export') }}" class="btn btn-outline-success btn-sm">Export CSV</a>
-        <a href="{{ route('alumni.tracer') }}" target="_blank" class="btn btn-outline-primary">Bagikan Form</a>
-    </div>
-</div>
 
 <div class="row g-3 mb-4">
     <div class="col-md-3">

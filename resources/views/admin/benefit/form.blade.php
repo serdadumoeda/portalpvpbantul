@@ -6,7 +6,7 @@
         <h5 class="mb-0">{{ $benefit->exists ? 'Edit' : 'Tambah' }} Benefit</h5>
     </div>
     <div class="card-body">
-        <form action="{{ $action }}" method="POST">
+        <form action="{{ $action }}" method="POST" enctype="multipart/form-data">
             @csrf
             @if($method === 'PUT') @method('PUT') @endif
             <div class="mb-3">

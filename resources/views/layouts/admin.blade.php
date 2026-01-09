@@ -32,55 +32,73 @@
     @stack('styles')
 </head>
 <body>
-    @php($adminUser = auth()->user())
-    @php($adminInitial = strtoupper(substr($adminUser->name ?? 'A', 0, 1)))
-    @php($isInstructor = $adminUser?->hasRole('instructor'))
-    @php($canContent = ! $isInstructor && $adminUser?->hasAnyPermission([
-        'manage-berita',
-        'manage-program',
-        'manage-publication',
-        'manage-gallery',
-        'approve-content',
-        'review-content',
-        'manage-seo',
-    ]))
-    @php($canPublication = ! $isInstructor && $adminUser?->hasAnyPermission([
-        'manage-publication',
-        'manage-program',
-        'manage-berita',
-        'manage-gallery',
-        'manage-settings',
-    ]))
-    @php($canService = ! $isInstructor && $adminUser?->hasAnyPermission([
-        'manage-public-service',
-        'manage-faq',
-        'manage-ppid',
-        'manage-settings',
-    ]))
-    @php($canAlumni = ! $isInstructor && $adminUser?->hasAnyPermission([
-        'manage-users',
-        'moderate-alumni-forum',
-        'access-alumni-forum',
-        'manage-enrollment',
-    ]))
-    @php($canSurvey = $adminUser?->hasAnyPermission(['manage-surveys', 'view-survey-analytics']))
-    @php($canClass = $adminUser?->hasAnyPermission([
-        'manage-classes',
-        'manage-sessions',
-        'manage-assignments',
-        'grade-submissions',
-        'manage-announcements',
-        'moderate-class-forum',
-        'manage-enrollment',
-    ]))
-    @php($canPpid = ! $isInstructor && $adminUser?->hasAnyPermission([
-        'manage-ppid',
-        'manage-publication',
-        'manage-faq',
-        'manage-settings',
-        'manage-public-service',
-    ]))
-    @php($canSettings = ! $isInstructor && $adminUser?->hasPermission('manage-settings'))
+    @php
+        $adminUser = auth()->user();
+        $adminInitial = strtoupper(substr($adminUser->name ?? 'A', 0, 1));
+        $isInstructor = $adminUser?->hasAnyRole(['instructor', 'instruktur']);
+        $canInstructorSchedule = $isInstructor || $adminUser?->hasAnyRole(['superadmin','admin']);
+        $canContent = ! $isInstructor && $adminUser?->hasAnyPermission([
+            'manage-berita',
+            'manage-program',
+            'manage-publication',
+            'manage-gallery',
+            'approve-content',
+            'review-content',
+            'manage-seo',
+        ]);
+        $canPublication = ! $isInstructor && $adminUser?->hasAnyPermission([
+            'manage-publication',
+            'manage-program',
+            'manage-berita',
+            'manage-gallery',
+            'manage-settings',
+        ]);
+        $canService = ! $isInstructor && $adminUser?->hasAnyPermission([
+            'manage-public-service',
+            'manage-faq',
+            'manage-ppid',
+            'manage-settings',
+        ]);
+        $canAlumni = ! $isInstructor && $adminUser?->hasAnyPermission([
+            'manage-users',
+            'moderate-alumni-forum',
+            'access-alumni-forum',
+            'manage-enrollment',
+        ]);
+        $canSurvey = $adminUser?->hasAnyPermission(['manage-surveys', 'view-survey-analytics']);
+        $canClass = $adminUser?->hasAnyPermission([
+            'manage-classes',
+            'manage-sessions',
+            'manage-assignments',
+            'grade-submissions',
+            'manage-announcements',
+            'moderate-class-forum',
+            'manage-enrollment',
+        ]);
+        $canPpid = ! $isInstructor && $adminUser?->hasAnyPermission([
+            'manage-ppid',
+            'manage-publication',
+            'manage-faq',
+            'manage-settings',
+            'manage-public-service',
+        ]);
+        $canSettings = ! $isInstructor && $adminUser?->hasPermission('manage-settings');
+        $flashMessages = array_filter([
+            'success' => session('success'),
+            'error' => session('error'),
+            'warning' => session('warning'),
+            'info' => session('info'),
+        ]);
+        $initialNotifications = collect($flashMessages)->map(function ($msg, $key) {
+            $titleMap = ['success' => 'Berhasil', 'error' => 'Gagal', 'warning' => 'Perhatian', 'info' => 'Info'];
+            return [
+                'type' => $key,
+                'title' => $titleMap[$key] ?? 'Info',
+                'message' => $msg,
+                'time' => now()->format('H:i'),
+            ];
+        })->values();
+    @endphp
     <div class="admin-wrapper">
     <div class="sidebar" id="adminSidebar">
         <div class="sidebar-header d-flex justify-content-between align-items-start">
@@ -96,11 +114,11 @@
             </button>
         </div>
         <div class="sidebar-menu">
-            @if($isInstructor)
-                @if($canClass)
-                    <div class="menu-group">
-                        <button class="menu-group-header" data-target="#group-class">
-                            <span>Kelas & Tugas</span>
+                @if($isInstructor)
+                    @if($canClass)
+                        <div class="menu-group">
+                            <button class="menu-group-header" data-target="#group-class">
+                                <span>Kelas & Tugas</span>
                             <i class="fas fa-chevron-down"></i>
                         </button>
                         <div class="submenu show" id="group-class">
@@ -137,6 +155,19 @@
                                     <i class="fas fa-flag"></i> Laporan Forum
                                 </a>
                             @endif
+                        </div>
+                    </div>
+                @endif
+                @if($canInstructorSchedule)
+                    <div class="menu-group">
+                        <button class="menu-group-header" data-target="#group-schedule">
+                            <span>Jadwal Instruktur</span>
+                            <i class="fas fa-chevron-down"></i>
+                        </button>
+                        <div class="submenu show" id="group-schedule">
+                            <a href="{{ route('instructor.schedules.index') }}" class="{{ request()->routeIs('instructor.schedules.*') ? 'active' : '' }}">
+                                <i class="fas fa-calendar-alt"></i> Kelola Jadwal
+                            </a>
                         </div>
                     </div>
                 @endif
@@ -187,6 +218,15 @@
                         </a>
                         <a href="{{ route('admin.program.index') }}" class="{{ request()->routeIs('admin.program.*') ? 'active' : '' }}">
                             <i class="fas fa-graduation-cap"></i> Program Pelatihan
+                        </a>
+                        <a href="{{ route('admin.training-service.index') }}" class="{{ request()->routeIs('admin.training-service.*') ? 'active' : '' }}">
+                            <i class="fas fa-layer-group"></i> Layanan Pelatihan
+                        </a>
+                        <a href="{{ route('admin.benefit.index') }}" class="{{ request()->routeIs('admin.benefit.*') ? 'active' : '' }}">
+                            <i class="fas fa-list-check"></i> Benefit Pelatihan
+                        </a>
+                        <a href="{{ route('admin.flow.index') }}" class="{{ request()->routeIs('admin.flow.*') ? 'active' : '' }}">
+                            <i class="fas fa-route"></i> Alur Pelatihan
                         </a>
                         <a href="{{ route('admin.lowongan.index') }}" class="{{ request()->routeIs('admin.lowongan.*') ? 'active' : '' }}">
                             <i class="fas fa-briefcase"></i> Lowongan Kerja
@@ -289,16 +329,6 @@
                         @if($adminUser?->hasPermission('manage-surveys'))
                             <a href="{{ route('admin.surveys.index') }}" class="{{ request()->routeIs('admin.surveys.*') ? 'active' : '' }}">
                                 <i class="fas fa-clipboard-list"></i> Survey Dinamis
-                            </a>
-                        @endif
-                        @if($adminUser?->hasPermission('manage-surveys'))
-                            <a href="{{ route('admin.survey-instance.index') }}" class="{{ request()->routeIs('admin.survey-instance.*') ? 'active' : '' }}">
-                                <i class="fas fa-link"></i> Survey Instance (Kelas/Instruktur)
-                            </a>
-                        @endif
-                        @if($adminUser?->hasPermission('manage-surveys'))
-                            <a href="{{ route('admin.survey-instance.dashboard') }}" class="{{ request()->routeIs('admin.survey-instance.dashboard') ? 'active' : '' }}">
-                                <i class="fas fa-chart-line"></i> Dashboard Survey
                             </a>
                         @endif
                     </div>
@@ -476,6 +506,34 @@
                 </div>
             </div>
             <div class="topbar-actions d-flex align-items-center gap-2 flex-wrap">
+                <div class="dropdown">
+                    @php $notifCount = $initialNotifications->count(); @endphp
+                    <button class="btn btn-soft-secondary btn-sm position-relative d-flex align-items-center gap-2" id="notifyDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                        <i class="fas fa-bell"></i>
+                        <span>Notifikasi</span>
+                        <span class="badge rounded-pill bg-danger position-absolute top-0 start-100 translate-middle notif-badge {{ $notifCount ? '' : 'd-none' }}" id="notifBadge">{{ $notifCount }}</span>
+                    </button>
+                    <div class="dropdown-menu dropdown-menu-end p-0 shadow" style="min-width: 260px;">
+                        <div class="p-2 border-bottom d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold">Perlu Perhatian</span>
+                            <small class="text-muted" id="notifCountLabel">{{ $notifCount }} item</small>
+                        </div>
+                        <div class="list-group list-group-flush" id="notifList">
+                            @forelse($initialNotifications as $note)
+                                <div class="list-group-item small d-flex gap-2 align-items-start">
+                                    <span class="badge rounded-pill bg-{{ $note['type'] === 'success' ? 'success' : ($note['type'] === 'error' ? 'danger' : ($note['type'] === 'warning' ? 'warning text-dark' : 'info text-dark')) }}">{{ ucfirst($note['type']) }}</span>
+                                    <div class="flex-grow-1">
+                                        <div class="fw-semibold">{{ $note['title'] }}</div>
+                                        <div>{{ $note['message'] }}</div>
+                                        <small class="text-muted">{{ $note['time'] }}</small>
+                                    </div>
+                                </div>
+                            @empty
+                                <div class="list-group-item text-muted small" id="notifEmpty">Belum ada notifikasi.</div>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
                 <div class="quick-actions d-flex gap-2">
                     @if(! $isInstructor && $adminUser?->hasPermission('manage-berita'))
                         <a href="{{ route('admin.berita.create') }}" class="btn btn-soft-primary btn-sm d-flex align-items-center gap-1"><i class="fas fa-plus"></i><span>Berita</span></a>
@@ -521,21 +579,100 @@
         @endif
 
         <div class="content-card">
-            @if(session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
-            @if(session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
-
             @yield('content')
         </div>
     </div>
 
     </div>
+    <div aria-live="polite" aria-atomic="true" class="position-fixed" style="top:1rem; right:1rem; z-index:1080;">
+        <div id="admin-toast-container" class="toast-container"></div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script>
+        const toastContainer = document.getElementById('admin-toast-container');
+        function pushToast({ type = 'info', title = '', message = '', delay = 4500 } = {}) {
+            if (!toastContainer) return;
+            const toastEl = document.createElement('div');
+            const typeClass = {
+                success: 'text-bg-success',
+                error: 'text-bg-danger',
+                danger: 'text-bg-danger',
+                warning: 'text-bg-warning',
+                info: 'text-bg-info',
+            }[type] || 'text-bg-secondary';
+            toastEl.className = `toast align-items-center border-0 shadow ${typeClass}`;
+            toastEl.setAttribute('role', 'alert');
+            toastEl.setAttribute('aria-live', 'assertive');
+            toastEl.setAttribute('aria-atomic', 'true');
+            toastEl.innerHTML = `
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${title ? `<strong class="d-block mb-1">${title}</strong>` : ''}
+                        <span>${message}</span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+            `;
+            toastContainer.appendChild(toastEl);
+            const toast = new bootstrap.Toast(toastEl, { delay });
+            toast.show();
+            toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+        }
+
+        // Flash toasts from backend sessions
+        const flashPayload = @json($flashMessages);
+        Object.entries(flashPayload).forEach(([key, val]) => {
+            if (!val) return;
+            const map = { success: 'Berhasil', error: 'Gagal', warning: 'Perhatian', info: 'Info' };
+            pushToast({ type: key, title: map[key] || 'Info', message: val });
+            addNotification({ type: key, title: map[key] || 'Info', message: val });
+        });
+
+        // Realtime-style hook: dispatch CustomEvent('notify', { detail: { type, title, message, delay } })
+        window.addEventListener('notify', (e) => {
+            const detail = e.detail || {};
+            if (detail.message) {
+                pushToast(detail);
+                addNotification(detail);
+            }
+        });
+
+        // Bell dropdown list
+        const notifList = document.getElementById('notifList');
+        const notifBadge = document.getElementById('notifBadge');
+        const notifCountLabel = document.getElementById('notifCountLabel');
+        const notifEmpty = document.getElementById('notifEmpty');
+        function addNotification({ type = 'info', title = 'Info', message = '', time = null } = {}) {
+            if (!notifList) return;
+            if (notifEmpty) notifEmpty.remove();
+            const item = document.createElement('div');
+            const badgeClass = {
+                success: 'bg-success',
+                error: 'bg-danger',
+                danger: 'bg-danger',
+                warning: 'bg-warning text-dark',
+                info: 'bg-info text-dark',
+            }[type] || 'bg-secondary';
+            item.className = 'list-group-item small d-flex gap-2 align-items-start';
+            item.innerHTML = `
+                <span class="badge rounded-pill ${badgeClass}">${(type || 'info').charAt(0).toUpperCase() + (type || 'info').slice(1)}</span>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold">${title}</div>
+                    <div>${message}</div>
+                    <small class="text-muted">${time || new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}</small>
+                </div>
+            `;
+            notifList.prepend(item);
+            const count = notifList.querySelectorAll('.list-group-item').length;
+            if (notifBadge) {
+                notifBadge.textContent = count;
+                notifBadge.classList.toggle('d-none', count === 0);
+            }
+            if (notifCountLabel) notifCountLabel.textContent = count + ' item';
+        }
+
         const bodyEl = document.body;
         const sidebarToggle = document.getElementById('sidebarToggle');
         const sidebarClose = document.getElementById('sidebarClose');

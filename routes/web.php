@@ -71,6 +71,7 @@ use App\Http\Controllers\Admin\CourseEnrollmentImportController;
 use App\Http\Controllers\Admin\CourseAnnouncementController;
 use App\Http\Controllers\Admin\TalentPoolController;
 use App\Http\Controllers\Admin\SchedulePreviewController;
+use App\Http\Controllers\Instructor\InstructorScheduleController;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
@@ -147,6 +148,8 @@ Route::get('/profil/instruktur', [HomeController::class, 'profilInstruktur'])->n
 
 Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login')->middleware('guest');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
+Route::get('/sso/siapkerja', [\App\Http\Controllers\SiapKerjaSsoController::class, 'redirect'])->name('sso.siapkerja.redirect')->middleware('guest');
+Route::get('/sso/siapkerja/callback', [\App\Http\Controllers\SiapKerjaSsoController::class, 'callback'])->name('sso.siapkerja.callback')->middleware('guest');
 Route::get('/register', [RegistrationController::class, 'show'])->name('register')->middleware('guest');
 Route::post('/register', [RegistrationController::class, 'register'])->name('register.post')->middleware('guest');
 Route::get('/forgot-password', [AuthController::class, 'showForgotPasswordForm'])->name('password.request')->middleware('guest');
@@ -173,6 +176,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::resource('program', ProgramController::class); 
     Route::resource('galeri', GaleriController::class);   
     Route::resource('pengumuman', PengumumanController::class);
+    Route::patch('pengumuman/{pengumuman}/submit', [PengumumanController::class, 'submit'])->name('pengumuman.submit')->middleware('permission:approve-content');
+    Route::patch('pengumuman/{pengumuman}/approve', [PengumumanController::class, 'approve'])->name('pengumuman.approve')->middleware('permission:approve-content');
     Route::resource('struktur', OrgStructureController::class)->except(['show']);
     Route::get('pesan', [PesanController::class, 'index'])->name('pesan.index');
     Route::patch('pesan/{pesan}/status', [PesanController::class, 'updateStatus'])->name('pesan.status');
@@ -180,8 +185,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
     Route::resource('instructor', InstructorController::class)->except(['show']);
     Route::resource('benefit', BenefitController::class)->except(['show']);
     Route::resource('flow', FlowStepController::class)->except(['show']);
-    Route::resource('alumni-tracer', AlumniTracerController::class)->only(['index','show','destroy'])->middleware('permission:manage-users');
+    Route::get('alumni-tracer/dashboard', [AlumniTracerController::class, 'dashboard'])->name('alumni-tracer.dashboard')->middleware('permission:manage-users');
     Route::get('alumni-tracer/export', [AlumniTracerController::class, 'export'])->name('alumni-tracer.export')->middleware(['permission:manage-users']);
+    Route::resource('alumni-tracer', AlumniTracerController::class)->only(['index','show','destroy'])->middleware('permission:manage-users');
     Route::resource('alumni', AlumniController::class)->except(['show']);
     Route::patch('alumni-tracer/{alumni_tracer}/verify', [AlumniTracerController::class, 'verify'])->name('alumni-tracer.verify')->middleware('permission:manage-users');
     Route::resource('testimonial', TestimonialController::class)->except(['show']);
@@ -288,6 +294,14 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'permission:access-a
 Route::post('/impersonate/stop', [ImpersonationController::class, 'stop'])
     ->name('impersonate.stop')
     ->middleware('auth');
+
+Route::prefix('instruktur')
+    ->name('instructor.')
+    ->middleware(['auth'])
+    ->group(function () {
+        Route::get('schedules/{schedule}/preview', [InstructorScheduleController::class, 'preview'])->name('schedules.preview');
+        Route::resource('schedules', InstructorScheduleController::class)->parameters(['schedules' => 'schedule'])->except(['show']);
+    });
 
 Route::get('/profil/sejarah', [HomeController::class, 'sejarah'])->name('profil.sejarah');
 Route::get('/profil/struktur-organisasi', [HomeController::class, 'struktur'])->name('profil.struktur');

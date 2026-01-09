@@ -5,8 +5,8 @@
     <div class="container">
         <div class="row align-items-center g-4 text-white">
             <div class="col-lg-7">
-                <h1 class="fw-bold mb-3">Tracer Study Alumni</h1>
-                <p class="lead">Bantu kami memetakan dampak pelatihan Satpel PVP Bantul dengan mengisi perkembangan karier Anda. Data ini digunakan untuk peningkatan kurikulum dan kerja sama industri.</p>
+                <h1 class="fw-bold mb-3 text-white">Tracer Study Alumni</h1>
+                <p class="lead text-white">Bantu kami memetakan dampak pelatihan Satpel PVP Bantul dengan mengisi perkembangan karier Anda. Data ini digunakan untuk peningkatan kurikulum dan kerja sama industri.</p>
             </div>
             <div class="col-lg-5">
                 <div class="card border-0 shadow-lg">
@@ -46,6 +46,17 @@
                     <input type="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}">
                     @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
+                <div class="col-md-3">
+                    <label class="form-label">Jenis Kelamin *</label>
+                    <select name="gender" class="form-select @error('gender') is-invalid @enderror" required>
+                        @php $genders = ['male' => 'Laki-laki', 'female' => 'Perempuan', 'other' => 'Lainnya']; @endphp
+                        <option value="">Pilih jenis kelamin</option>
+                        @foreach($genders as $key => $label)
+                            <option value="{{ $key }}" {{ old('gender') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('gender')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
                 <div class="col-md-4">
                     <label class="form-label">Nomor Identitas</label>
                     <input type="text" name="national_id" class="form-control" value="{{ old('national_id') }}">
@@ -76,6 +87,17 @@
                 <div class="col-md-3">
                     <label class="form-label">Batch/Kelas</label>
                     <input type="text" name="training_batch" class="form-control" value="{{ old('training_batch') }}">
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Pendidikan Terakhir *</label>
+                    @php $educations = ['sd' => 'SD', 'smp' => 'SMP', 'sma' => 'SMA', 'smk' => 'SMK', 'd1' => 'D1', 'd2' => 'D2', 'd3' => 'D3', 'd4' => 'D4', 's1' => 'S1', 's2' => 'S2', 's3' => 'S3', 'other' => 'Lainnya']; @endphp
+                    <select name="education_level" class="form-select @error('education_level') is-invalid @enderror" required>
+                        <option value="">Pilih pendidikan</option>
+                        @foreach($educations as $key => $label)
+                            <option value="{{ $key }}" {{ old('education_level') === $key ? 'selected' : '' }}>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                    @error('education_level')<div class="invalid-feedback">{{ $message }}</div>@enderror
                 </div>
             </div>
             <hr class="my-4">

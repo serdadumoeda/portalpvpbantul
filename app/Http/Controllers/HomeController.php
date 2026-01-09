@@ -48,7 +48,7 @@ class HomeController extends Controller
     public function index()
     {
         // 1. Mengambil 3 Berita Terbaru
-        $beritaTerbaru = Berita::latest()->take(3)->get();
+        $beritaTerbaru = Berita::where('status', Berita::STATUS_PUBLISHED)->latest()->take(3)->get();
 
         // 2. Mengambil Semua Program Pelatihan
         $programs = Program::all();
@@ -111,14 +111,17 @@ class HomeController extends Controller
         $orderColumn = Schema::hasColumn('beritas', 'published_at') ? 'published_at' : 'created_at';
         if (Schema::hasColumn('beritas', 'kategori')) {
             foreach ($categories as $key => $label) {
-                $newsCollections[$key] = Berita::where('kategori', $key)
+                $newsCollections[$key] = Berita::where('status', Berita::STATUS_PUBLISHED)
+                    ->where('kategori', $key)
                     ->latest($orderColumn)
                     ->paginate(4, ['*'], $key . '_page');
             }
         } else {
-            $newsCollections['berita'] = Berita::latest($orderColumn)->paginate(4, ['*'], 'berita_page');
+            $newsCollections['berita'] = Berita::where('status', Berita::STATUS_PUBLISHED)
+                ->latest($orderColumn)
+                ->paginate(4, ['*'], 'berita_page');
         }
-        $hero = Berita::latest($orderColumn)->first();
+        $hero = Berita::where('status', Berita::STATUS_PUBLISHED)->latest($orderColumn)->first();
         $settings = SiteSetting::pluck('value', 'key');
 
         return view('berita.terkini', compact('categories', 'newsCollections', 'hero', 'settings'));
@@ -126,11 +129,14 @@ class HomeController extends Controller
 
     public function lowonganKerja()
     {
-        $vacancies = Schema::hasTable('job_vacancies')
-            ? JobVacancy::where('is_active', true)->latest()->paginate(9)
-            : collect([]);
+        $vacanciesQuery = Schema::hasTable('job_vacancies')
+            ? JobVacancy::where('is_active', true)->latest()
+            : null;
+
+        $vacancies = $vacanciesQuery?->paginate(9) ?? collect([]);
+        $latestVacancy = $vacanciesQuery?->first();
         $settings = SiteSetting::pluck('value', 'key');
-        return view('berita.lowongan', compact('vacancies', 'settings'));
+        return view('berita.lowongan', compact('vacancies', 'latestVacancy', 'settings'));
     }
 
     public function lowonganDetail(JobVacancy $lowongan)

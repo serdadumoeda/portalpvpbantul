@@ -20,6 +20,8 @@ class AlumniTracer extends Model
         'program_name',
         'graduation_year',
         'training_batch',
+        'gender',
+        'education_level',
         'status',
         'job_title',
         'company_name',

@@ -40,6 +40,10 @@
         }
         return \Illuminate\Support\Str::startsWith($path, ['http', 'https']) ? $path : asset($path);
     };
+    $heroImage = $imageUrl($latestVacancy->gambar ?? null) ?: 'https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=70';
+    $heroTitle = $latestVacancy->judul ?? 'Lowongan';
+    $heroCompany = $latestVacancy->perusahaan ?? 'Mitra Industri';
+    $heroLink = $latestVacancy ? route('berita.lowongan.detail', $latestVacancy->id) : null;
 @endphp
 <section class="vacancy-hero">
     <div class="container">
@@ -52,8 +56,16 @@
                 </div>
             </div>
             <div class="col-lg-6">
-                <div class="vacancy-hero-image">
-                    <img src="https://images.unsplash.com/photo-1545239351-1141bd82e8a6?auto=format&fit=crop&w=1200&q=70" alt="Lowongan">
+                <div class="vacancy-hero-image position-relative">
+                    <img src="{{ $heroImage }}" alt="{{ $heroTitle }}">
+                    @if($latestVacancy)
+                        <a href="{{ $heroLink }}" class="stretched-link"></a>
+                        <div class="position-absolute bottom-0 start-0 end-0 p-3 d-flex flex-column gap-1" style="background:linear-gradient(180deg, transparent, rgba(0,0,0,0.55));">
+                            <span class="badge bg-light text-success align-self-start">Lowongan Terbaru</span>
+                            <h5 class="text-white mb-0">{{ $heroTitle }}</h5>
+                            <small class="text-white-50">{{ $heroCompany }}</small>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

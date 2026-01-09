@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Collection;
 
 class AlumniTracerController extends Controller
 {
@@ -37,6 +38,88 @@ class AlumniTracerController extends Controller
         $years = AlumniTracer::select('graduation_year')->whereNotNull('graduation_year')->distinct()->orderByDesc('graduation_year')->pluck('graduation_year');
 
         return view('admin.alumni_tracer.index', compact('responses', 'metrics', 'status', 'year', 'years'));
+    }
+
+    public function dashboard()
+    {
+        $statusLabels = [
+            'employed' => 'Bekerja',
+            'entrepreneur' => 'Wirausaha',
+            'studying' => 'Melanjutkan Studi',
+            'seeking' => 'Mencari Kerja',
+            'other' => 'Lainnya',
+        ];
+        $genderLabels = [
+            'male' => 'Laki-laki',
+            'female' => 'Perempuan',
+            'other' => 'Lainnya/Tidak sebut',
+            null => '(blank)',
+        ];
+        $educationLabels = [
+            'sd' => 'SD',
+            'smp' => 'SMP',
+            'sma' => 'SMA',
+            'smk' => 'SMK',
+            'd1' => 'D1',
+            'd2' => 'D2',
+            'd3' => 'D3',
+            'd4' => 'D4',
+            's1' => 'S1',
+            's2' => 'S2',
+            's3' => 'S3',
+            'other' => 'Lainnya',
+            null => '(blank)',
+        ];
+
+        $statusCounts = AlumniTracer::selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $educationByGender = AlumniTracer::selectRaw('education_level, gender, count(*) as total')
+            ->groupBy('education_level', 'gender')
+            ->get()
+            ->groupBy('gender');
+
+        $statusChart = [
+            'labels' => collect($statusLabels)->keys(),
+            'data' => collect($statusLabels)->map(fn($label, $key) => $statusCounts[$key] ?? 0)->values(),
+            'displayLabels' => array_values($statusLabels),
+        ];
+
+        $educationChart = $this->buildEducationChart($educationByGender, $educationLabels, $genderLabels);
+
+        return view('admin.alumni_tracer.dashboard', [
+            'statusChart' => $statusChart,
+            'educationChart' => $educationChart,
+            'statusLabels' => $statusLabels,
+            'genderLabels' => $genderLabels,
+            'educationLabels' => $educationLabels,
+        ]);
+    }
+
+    private function buildEducationChart(Collection $educationByGender, array $educationLabels, array $genderLabels): array
+    {
+        $educationKeys = collect($educationLabels)->keys()->values();
+        $datasets = [];
+
+        foreach ($genderLabels as $genderKey => $genderTitle) {
+            $data = $educationKeys->map(function ($eduKey) use ($educationByGender, $genderKey) {
+                /** @var Collection $group */
+                $group = $educationByGender->get($genderKey, collect());
+                return $group->firstWhere('education_level', $eduKey)->total ?? 0;
+            })->values();
+
+            $datasets[] = [
+                'label' => $genderTitle,
+                'data' => $data,
+            ];
+        }
+
+        return [
+            'labels' => $educationKeys,
+            'displayLabels' => array_values($educationLabels),
+            'datasets' => $datasets,
+        ];
     }
 
     public function show(AlumniTracer $alumni_tracer)

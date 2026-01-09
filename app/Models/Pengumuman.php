@@ -23,6 +23,7 @@ class Pengumuman extends Model
         'status',
         'approved_by',
         'approved_at',
+        'published_at',
         'meta_title',
         'meta_description',
         'focus_keyword',
@@ -30,6 +31,7 @@ class Pengumuman extends Model
 
     protected $casts = [
         'approved_at' => 'datetime',
+        'published_at' => 'datetime',
     ];
 
     public function approver(): BelongsTo

@@ -10,12 +10,8 @@
             @csrf
             @if($method === 'PUT') @method('PUT') @endif
             <div class="mb-3">
-                <label class="form-label fw-bold">Judul</label>
-                <input type="text" name="judul" class="form-control" value="{{ old('judul', $flow->judul) }}" required>
-            </div>
-            <div class="mb-3">
                 <label class="form-label fw-bold">Deskripsi</label>
-                <textarea name="deskripsi" rows="3" class="form-control">{{ old('deskripsi', $flow->deskripsi) }}</textarea>
+                <textarea name="deskripsi" rows="3" class="form-control" placeholder="Tuliskan detail langkah">{{ old('deskripsi', $flow->deskripsi) }}</textarea>
             </div>
             <div class="row g-3">
                 <div class="col-md-6">

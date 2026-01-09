@@ -50,6 +50,48 @@
                 @enderror
             </div>
 
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label">Label Biaya</label>
+                    <input
+                        type="text"
+                        name="biaya_label"
+                        value="{{ old('biaya_label', 'Gratis') }}"
+                        class="form-control @error('biaya_label') is-invalid @enderror"
+                        placeholder="Gratis / Berbayar"
+                    >
+                    @error('biaya_label')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Label Sertifikat</label>
+                    <input
+                        type="text"
+                        name="sertifikat_label"
+                        value="{{ old('sertifikat_label', 'Sertifikat Mengikuti Pelatihan') }}"
+                        class="form-control @error('sertifikat_label') is-invalid @enderror"
+                        placeholder="Sertifikat Mengikuti Pelatihan"
+                    >
+                    @error('sertifikat_label')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label">Label Bahasa</label>
+                    <input
+                        type="text"
+                        name="bahasa_label"
+                        value="{{ old('bahasa_label', 'Bahasa Indonesia') }}"
+                        class="form-control @error('bahasa_label') is-invalid @enderror"
+                        placeholder="Bahasa Indonesia"
+                    >
+                    @error('bahasa_label')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+            </div>
+
             <div class="mb-3">
                 <label class="form-label">Deskripsi & Fasilitas</label>
                 <textarea 
@@ -60,6 +102,21 @@
                     required
                 >{{ old('deskripsi') }}</textarea>
                 @error('deskripsi')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Link Pendaftaran</label>
+                <input
+                    type="url"
+                    name="pendaftaran_link"
+                    value="{{ old('pendaftaran_link', 'https://siapkerja.kemnaker.go.id/app/pelatihan') }}"
+                    class="form-control @error('pendaftaran_link') is-invalid @enderror"
+                    placeholder="https://siapkerja.kemnaker.go.id/app/pelatihan"
+                >
+                <small class="text-muted">Opsional. Jika dikosongkan, tombol daftar akan diarahkan ke Siap Kerja.</small>
+                @error('pendaftaran_link')
                     <div class="invalid-feedback">{{ $message }}</div>
                 @enderror
             </div>

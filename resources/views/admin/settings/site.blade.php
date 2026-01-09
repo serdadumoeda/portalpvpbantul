@@ -5,7 +5,7 @@
     <div class="card-header bg-white d-flex justify-content-between align-items-center flex-wrap gap-2">
         <div>
             <h5 class="mb-0">Pengaturan Beranda & Footer</h5>
-            <small class="text-muted">Atur hero, gambar, CTA, dan footer yang tampil di halaman utama.</small>
+            <small class="text-muted">Atur bagian utama beranda, gambar, tombol ajakan, dan footer.</small>
         </div>
         @if(session('success')) <span class="badge bg-success bg-opacity-75 text-dark">Tersimpan</span> @endif
     </div>
@@ -22,8 +22,8 @@
             <div class="border rounded-3 p-3 p-md-4">
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <div>
-                        <h6 class="fw-bold mb-1">Hero Beranda</h6>
-                        <small class="text-muted">Judul, deskripsi, CTA, dan gambar utama.</small>
+                        <h6 class="fw-bold mb-1">Bagian Utama Beranda</h6>
+                        <small class="text-muted">Judul pembuka, deskripsi singkat, tombol ajakan, dan gambar utama.</small>
                     </div>
                     @if(!empty($settings['home_hero_image']))
                         <img src="{{ $settings['home_hero_image'] }}" alt="Hero" class="rounded-3 border" style="height:60px; object-fit:cover;">
@@ -31,36 +31,36 @@
                 </div>
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="form-label">Judul Hero</label>
+                        <label class="form-label">Judul pembuka</label>
                         <input type="text" name="home_hero_title" class="form-control" value="{{ $settings['home_hero_title'] ?? '' }}" placeholder="Tingkatkan Potensi Dirimu...">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Sub Judul Hero</label>
+                        <label class="form-label">Deskripsi singkat</label>
                         <input type="text" name="home_hero_subtitle" class="form-control" value="{{ $settings['home_hero_subtitle'] ?? '' }}" placeholder="Program pelatihan vokasi...">
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Gambar Hero (URL)</label>
+                        <label class="form-label">Gambar utama (URL)</label>
                         <input type="text" name="home_hero_image" class="form-control" value="{{ $settings['home_hero_image'] ?? '' }}" placeholder="https://.../hero.jpg">
                         <small class="text-muted">Atau unggah file di bawah.</small>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Upload Gambar Hero (maks 2MB)</label>
+                        <label class="form-label">Upload gambar utama (maks 2MB)</label>
                         <input type="file" name="home_hero_image_upload" class="form-control" accept="image/*">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">CTA Utama (teks)</label>
+                        <label class="form-label">Tombol utama (teks)</label>
                         <input type="text" name="home_hero_cta_primary_text" class="form-control" value="{{ $settings['home_hero_cta_primary_text'] ?? '' }}" placeholder="Daftar Pelatihan">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">CTA Utama (link)</label>
+                        <label class="form-label">Tombol utama (tautan)</label>
                         <input type="text" name="home_hero_cta_primary_link" class="form-control" value="{{ $settings['home_hero_cta_primary_link'] ?? '' }}" placeholder="https://...">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">CTA Sekunder (teks)</label>
+                        <label class="form-label">Tombol kedua (teks)</label>
                         <input type="text" name="home_hero_cta_secondary_text" class="form-control" value="{{ $settings['home_hero_cta_secondary_text'] ?? '' }}" placeholder="Baca Selengkapnya">
                     </div>
                     <div class="col-md-3">
-                        <label class="form-label">CTA Sekunder (link)</label>
+                        <label class="form-label">Tombol kedua (tautan)</label>
                         <input type="text" name="home_hero_cta_secondary_link" class="form-control" value="{{ $settings['home_hero_cta_secondary_link'] ?? '' }}" placeholder="{{ route('program') }}">
                     </div>
                 </div>
@@ -72,9 +72,12 @@
                         <h6 class="fw-bold mb-1">Section Benefit (gradasi biru)</h6>
                         <small class="text-muted">Judul dan ilustrasi di section benefit.</small>
                     </div>
-                    @if(!empty($settings['home_benefit_image']))
-                        <img src="{{ $settings['home_benefit_image'] }}" alt="Benefit" class="rounded-3 border" style="height:60px; object-fit:cover;">
-                    @endif
+                    <div class="d-flex align-items-center gap-2">
+                        <a href="{{ route('admin.benefit.index') }}" class="btn btn-sm btn-outline-primary">Kelola daftar benefit</a>
+                        @if(!empty($settings['home_benefit_image']))
+                            <img src="{{ $settings['home_benefit_image'] }}" alt="Benefit" class="rounded-3 border" style="height:60px; object-fit:cover;">
+                        @endif
+                    </div>
                 </div>
                 <div class="row g-3">
                     <div class="col-md-6">

@@ -183,10 +183,7 @@
                                     <strong>{{ $version->created_at->diffForHumans() }}</strong>
                                     <div class="text-muted small">{{ $version->note ?? 'Snapshot' }}</div>
                                 </div>
-                                <form action="{{ route('admin.surveys.restore', [$survey, $version]) }}" method="POST" onsubmit="return confirm('Pulihkan ke versi ini?')">
-                                    @csrf
-                                    <button class="btn btn-sm btn-outline-danger">Undo</button>
-                                </form>
+                                <button type="submit" form="restore-version-{{ $version->id }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Pulihkan ke versi ini?')">Undo</button>
                             </li>
                         @endforeach
                     </ul>
@@ -197,22 +194,21 @@
             <div class="card shadow-sm border-0 mb-3">
                 <div class="card-body">
                     <h6 class="mb-2">Kolaborator</h6>
-                    <form action="{{ route('admin.surveys.collaborators.add', $survey) }}" method="POST" class="row g-2 mb-2">
-                        @csrf
+                    <div class="row g-2 mb-2">
                         <div class="col-7">
-                            <input type="email" name="email" class="form-control form-control-sm" placeholder="Email user" required>
+                            <input type="email" name="email" class="form-control form-control-sm" placeholder="Email user" required form="collaborator-add-form">
                         </div>
                         <div class="col-3">
-                            <select name="role" class="form-select form-select-sm">
+                            <select name="role" class="form-select form-select-sm" form="collaborator-add-form">
                                 <option value="editor">Editor</option>
                                 <option value="viewer">Viewer</option>
                                 <option value="owner">Owner</option>
                             </select>
                         </div>
                         <div class="col-2">
-                            <button class="btn btn-sm btn-outline-primary w-100">Tambah</button>
+                            <button type="submit" form="collaborator-add-form" class="btn btn-sm btn-outline-primary w-100">Tambah</button>
                         </div>
-                    </form>
+                    </div>
                     <ul class="list-unstyled mb-0">
                         <li class="d-flex justify-content-between align-items-center py-1">
                             <div>
@@ -226,11 +222,7 @@
                                     <strong>{{ $collab->user->email ?? 'User' }}</strong>
                                     <div class="text-muted small">{{ ucfirst($collab->role) }}</div>
                                 </div>
-                                <form action="{{ route('admin.surveys.collaborators.remove', [$survey, $collab]) }}" method="POST" onsubmit="return confirm('Hapus kolaborator?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button class="btn btn-sm btn-outline-danger">Hapus</button>
-                                </form>
+                                <button type="submit" form="collaborator-remove-{{ $collab->id }}" class="btn btn-sm btn-outline-danger" onclick="return confirm('Hapus kolaborator?')">Hapus</button>
                             </li>
                         @endforeach
                     </ul>
@@ -285,6 +277,25 @@
         <button class="btn btn-primary px-4">{{ $isEdit ? 'Simpan Perubahan' : 'Publikasikan Survey' }}</button>
     </div>
 </form>
+
+@if($isEdit)
+    @if($survey->versions->count())
+        @foreach($survey->versions as $version)
+            <form id="restore-version-{{ $version->id }}" action="{{ route('admin.surveys.restore', [$survey, $version]) }}" method="POST" class="d-none">
+                @csrf
+            </form>
+        @endforeach
+    @endif
+    <form id="collaborator-add-form" action="{{ route('admin.surveys.collaborators.add', $survey) }}" method="POST" class="d-none">
+        @csrf
+    </form>
+    @foreach($survey->collaborators as $collab)
+        <form id="collaborator-remove-{{ $collab->id }}" action="{{ route('admin.surveys.collaborators.remove', [$survey, $collab]) }}" method="POST" class="d-none">
+            @csrf
+            @method('DELETE')
+        </form>
+    @endforeach
+@endif
 @endsection
 
 @push('styles')
@@ -742,6 +753,13 @@
         document.getElementById('add-question').addEventListener('click', () => {
             questions.push(newQuestion());
             renderQuestions();
+            // Scroll to the newly added question to keep UX aligned with the button intent
+            requestAnimationFrame(() => {
+                const cards = document.querySelectorAll('#question-list .question-card');
+                const newest = cards[cards.length - 1];
+                newest?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                newest?.querySelector('.question-text')?.focus();
+            });
         });
 
         document.querySelectorAll('.template-btn').forEach(btn => {

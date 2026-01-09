@@ -19,6 +19,8 @@ class AlumniTracerRequest extends FormRequest
             'phone' => 'nullable|string|max:30',
             'national_id' => 'nullable|string|max:32',
             'alumni_number' => 'required|string|max:40|unique:alumni_tracers,alumni_number',
+            'gender' => 'required|in:male,female,other',
+            'education_level' => 'required|in:sd,smp,sma,smk,d1,d2,d3,d4,s1,s2,s3,other',
             'program_id' => 'nullable|exists:programs,id',
             'program_name' => 'nullable|string|max:255',
             'graduation_year' => 'nullable|integer|min:2000|max:' . (now()->year + 1),
